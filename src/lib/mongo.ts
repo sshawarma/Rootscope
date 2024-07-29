@@ -9,9 +9,7 @@ class MongoDB {
     private client: MongoClient;
     private constructor() {
         try {
-            this.client = new MongoClient(
-                ''
-            );
+            this.client = new MongoClient(process.env.MONGO_URI);
         } catch {
             console.log('Failed to establish mongo connection');
         }
