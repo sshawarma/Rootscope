@@ -23,7 +23,6 @@ const client = mqtt.connect(process.env.MQTT_URL, {
 // });
 
 client.on('connect', function () {
-    console.log('connected  ' + client.connected);
     client.subscribe('rootscope-daemon1');
 });
 
