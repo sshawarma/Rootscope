@@ -28,24 +28,23 @@ client.on('connect', function () {
 });
 
 client.on('message', function (topic, message) {
-    // console.log(message.toString());
     const msgPack: MsgPack = MsgPack.getInstance();
-    const eventHandler: EventHandler = EventHandler.getInstance();
-    console.log('raw:', message.toString());
-    // const packedMessage: Buffer = msgPack.packMessage(message.toString())
-    // console.log('packedMessage:', packedMessage)
-    const unpackedMessage: DaemonEvent = msgPack.unpackMessage(message);
-    console.log('unpackedMessage:', unpackedMessage);
-    // console.log('unpacked', unpackedMessage)
-    // console.log('unpackedType', typeof unpackedMessage)
+    // const eventHandler: EventHandler = EventHandler.getInstance();
+    console.log(
+        `Message received from topic: ${topic} \n
+         Message content as string: ${message.toString()}`
+    );
 
-    // const parsedMessage = JSON.parse(unpackedMessage)
-    // console.log('unpackedMessage:',typeof parsedMessage)
-    // msgPack.storeMessage(msg)
+    try {
+        const unpackedMessage: DaemonEvent = msgPack.unpackMessage(message);
+        console.log('unpackedMessage:', unpackedMessage);
+        client.publish('rootscope-daemon-ack', 'success');
+    } catch (error) {
+        console.log('failed to unpack message');
+        client.publish('rootscope-daemon-ack', 'failure');
+    }
+
     // eventHandler.process(fullScanEvent)
-    // console.log('storedMessage:')
-
-    // packAndUnpack(message.toString())
 });
 
 app.listen(port, () => {
