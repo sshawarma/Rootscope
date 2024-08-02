@@ -1,23 +1,14 @@
 import { ObjectId } from 'mongodb';
+import { DaemonEvent } from './types/daemonEvent';
+import FullScanEventProvider from './daemonFullScanEventProvider';
+import MongoDB from '../mongo/mongo';
 import {
-    DaemonEvent,
-    DaemonFullScanEvent,
-    DaemonHardwareEvent,
-    EventType,
-    TransformedNode
-} from './types/eventTypes';
-import FullScanEventProvider from './fullScanEventProvider';
-import HardwareEventProvider from './hardwareEventProvider';
-import MongoDB from '../lib/mongo';
-import { isDaemonFullScanEvent } from './types/typeGuards';
-
-interface Eventeventuments {
-    [EventType.Unknown]: any;
-    [EventType.FullScan]: DaemonFullScanEvent;
-    [EventType.FilesystemChange]: { path: string; changed: boolean };
-    [EventType.NetworkChange]: { status: string };
-    [EventType.HardwareChange]: DaemonHardwareEvent;
-}
+    isDaemonFileSystemChangeEvent,
+    isDaemonFullScanEvent
+} from './types/typeGuards';
+import HardwareEventProvider from './daemonHardwareEventProvider';
+import FileSystemChangeEventProvider from './daemonFilesystemChangeEventProvider';
+import { EventType } from './types/fileSystemChangeEvent';
 
 class EventHandler {
     private static _instance: EventHandler;
@@ -26,6 +17,8 @@ class EventHandler {
 
     private hardwareEventProvider: HardwareEventProvider;
 
+    private fileSystemChangeEventProvider: FileSystemChangeEventProvider;
+
     // private mongo: MongoDB;
 
     // private eventProcessors: Record<EventType, () => void>;
@@ -33,6 +26,8 @@ class EventHandler {
     private constructor() {
         this.fullScanEventProvider = FullScanEventProvider.getInstance();
         this.hardwareEventProvider = HardwareEventProvider.getInstance();
+        this.fileSystemChangeEventProvider =
+            FileSystemChangeEventProvider.getInstance();
         // this.mongo = MongoDB.getInstance();
         // this.eventProcessors = {
         //     [EventType.Unknown]: () => console.log('unknown event oh no'),
@@ -70,6 +65,12 @@ class EventHandler {
                 event
             )}`
         );
+        const daemonEventData = event.event_data;
+        if (isDaemonFileSystemChangeEvent(daemonEventData)) {
+            this.fileSystemChangeEventProvider.process(daemonEventData);
+        } else {
+            console.log('ERROR:Not DaemonFileSystemChangeEvent');
+        }
     }
 
     private processNetworkChangeEvent(event: DaemonEvent) {

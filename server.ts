@@ -2,10 +2,9 @@ import express from 'express';
 import mqtt from 'mqtt';
 import 'dotenv/config';
 
-import { msg } from './src/lib/msgpack';
 import MsgPack from './src/lib/msgpack';
-import EventHandler from './src/providers/messageHandler';
-import { DaemonEvent, fullScanEvent } from './src/providers/types/eventTypes';
+import EventHandler from './src/providers/eventHandler';
+import { DaemonEvent, testEvent } from './src/providers/types/daemonEvent';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -48,8 +47,7 @@ client.on('message', function (topic, message) {
 
 app.listen(port, () => {
     const eventHandler: EventHandler = EventHandler.getInstance();
-    // eventHandler.process(fullScanEvent)
-    console.log(process.env.TEST);
+    // eventHandler.process(testEvent)
     return console.log(`Express is listening at http://localhost:${port}`);
 });
 // unpack, then try to save to db
