@@ -7,7 +7,7 @@ import {
     isDaemonFullScanEvent
 } from './types/typeGuards';
 import HardwareEventProvider from './daemonHardwareEventProvider';
-import FileSystemChangeEventProvider from './daemonFilesystemChangeEventProvider';
+import FileSystemChangeEventProvider from './filesystemChangeEventProvider';
 import { EventType } from './types/fileSystemChangeEvent';
 
 class EventHandler {
@@ -110,9 +110,6 @@ class EventHandler {
         const processor =
             this.eventProcessors[event.event_type] ||
             this.eventProcessors[EventType.Unknown];
-        // this.fullScanEventProvider.process(
-        //     event.event_data as DaemonFullScanEvent
-        // );
         processor(event);
     };
 }

@@ -13,6 +13,147 @@ export interface DaemonEvent {
         | DaemonFileSystemChangeEvent;
 }
 
+export const testFullScanEvent: DaemonEvent = {
+    event_type: 1,
+    event_data: {
+        data: {
+            path: '/home/martin/Documents/linux-visualizer/src/daemon',
+            status: 'success',
+            type: 'directory',
+            attrib: {
+                perm: 383,
+                xattr: 524288,
+                inode: 746778,
+                filesystem: 'EXT2/3/4',
+                owner_id: 1000,
+                owner_name: 'martin',
+                group_id: 1000,
+                group_name: 'martin',
+                group_members: []
+            },
+            date_created: 1720648810,
+            du: 32768,
+            cu_size: 25578,
+            link: null,
+            device: null,
+            mounted: null,
+            is_socket: 0,
+            is_fifo: 0
+        },
+        children: [
+            {
+                data: {
+                    path: '/home/martin/Documents/linux-visualizer/src/daemon/daemon_lib.c',
+                    status: 'success',
+                    type: 'file',
+                    attrib: {
+                        perm: 91,
+                        xattr: 524288,
+                        inode: 678805,
+                        filesystem: 'EXT2/3/4',
+                        owner_id: 1000,
+                        owner_name: 'martin',
+                        group_id: 1000,
+                        group_name: 'martin',
+                        group_members: []
+                    },
+                    date_created: 1722272669,
+                    du: 4096,
+                    cu_size: 2222,
+                    link: null,
+                    device: null,
+                    mounted: null,
+                    is_socket: 0,
+                    is_fifo: 0
+                },
+                children: []
+            },
+            {
+                data: {
+                    path: '/home/martin/Documents/linux-visualizer/src/daemon/include',
+                    status: 'success',
+                    type: 'directory',
+                    attrib: {
+                        perm: 383,
+                        xattr: 524288,
+                        inode: 746862,
+                        filesystem: 'EXT2/3/4',
+                        owner_id: 1000,
+                        owner_name: 'martin',
+                        group_id: 1000,
+                        group_name: 'martin',
+                        group_members: []
+                    },
+                    date_created: 1720648810,
+                    du: 8192,
+                    cu_size: 6069,
+                    link: null,
+                    device: null,
+                    mounted: null,
+                    is_socket: 0,
+                    is_fifo: 0
+                },
+                children: [
+                    {
+                        data: {
+                            path: '/home/martin/Documents/linux-visualizer/src/daemon/include/daemon.h',
+                            status: 'success',
+                            type: 'file',
+                            attrib: {
+                                perm: 91,
+                                xattr: 524288,
+                                inode: 691745,
+                                filesystem: 'EXT2/3/4',
+                                owner_id: 1000,
+                                owner_name: 'martin',
+                                group_id: 1000,
+                                group_name: 'martin',
+                                group_members: []
+                            },
+                            date_created: 1722031487,
+                            du: 4096,
+                            cu_size: 1973,
+                            link: null,
+                            device: null,
+                            mounted: null,
+                            is_socket: 0,
+                            is_fifo: 0
+                        },
+                        children: []
+                    }
+                ]
+            },
+            {
+                data: {
+                    path: '/home/martin/Documents/linux-visualizer/src/daemon/daemon.c',
+                    status: 'success',
+                    type: 'file',
+                    attrib: {
+                        perm: 91,
+                        xattr: 524288,
+                        inode: 678693,
+                        filesystem: 'EXT2/3/4',
+                        owner_id: 1000,
+                        owner_name: 'martin',
+                        group_id: 1000,
+                        group_name: 'martin',
+                        group_members: []
+                    },
+                    date_created: 1722272669,
+                    du: 16384,
+                    cu_size: 15164,
+                    link: null,
+                    device: null,
+                    mounted: null,
+                    is_socket: 0,
+                    is_fifo: 0
+                },
+                children: []
+            }
+        ]
+    }
+};
+
 export const fullScanEvent: DaemonFileSystemChangeEvent = {
     num_events: 1,
     events: [

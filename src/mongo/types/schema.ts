@@ -13,6 +13,7 @@ export interface Attrib {
 }
 
 export interface Directory {
+    parentId?: ObjectId
     path: string;
     status: string;
     type: string;

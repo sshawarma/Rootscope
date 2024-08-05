@@ -14,6 +14,7 @@ export interface FileData {
     is_socket: number;
     is_fifo: number;
     _id?: ObjectId;
+    parentId?: ObjectId;
 }
 
 export interface Attrib {

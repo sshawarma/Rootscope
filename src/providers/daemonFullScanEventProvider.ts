@@ -25,19 +25,26 @@ class FullScanEventProvider {
         const idToNode: { [key: string]: DaemonFullScanEvent } = {};
         const Directorys: Directory[] = [];
 
-        const assignIds = (node: DaemonFullScanEvent): ObjectId => {
+        const assignIds = (
+            node: DaemonFullScanEvent,
+            parentId?: ObjectId
+        ): ObjectId => {
             const nodeId = new ObjectId();
             node.data._id = nodeId;
+            node.data.parentId = parentId;
             idToNode[nodeId.toHexString()] = node;
 
-            const childrenIds = node.children.map(assignIds);
+            const childrenIds = node.children.map((event) =>
+                assignIds(event, nodeId)
+            );
             const now: Date = new Date();
             Directorys.push({
                 ...node.data,
                 _id: nodeId,
                 children: childrenIds,
                 createdAt: now,
-                updatedAt: now
+                updatedAt: now,
+                parentId
             });
 
             return nodeId;
@@ -49,7 +56,7 @@ class FullScanEventProvider {
 
     public process = async (event: DaemonFullScanEvent): Promise<void> => {
         const transformedDirectory: Directory[] = this.transformTree(event);
-        // await this.mongo.insertNewDirectoryList(transformedDirectory)
+        await this.mongo.insertNewDirectoryList(transformedDirectory);
     };
 }
 

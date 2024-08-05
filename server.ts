@@ -4,7 +4,7 @@ import 'dotenv/config';
 
 import MsgPack from './src/lib/msgpack';
 import EventHandler from './src/providers/eventHandler';
-import { DaemonEvent, testEvent } from './src/providers/types/daemonEvent';
+import { DaemonEvent, testEvent, testFullScanEvent } from './src/providers/types/daemonEvent';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -47,7 +47,7 @@ client.on('message', function (topic, message) {
 
 app.listen(port, () => {
     const eventHandler: EventHandler = EventHandler.getInstance();
-    // eventHandler.process(testEvent)
+    // eventHandler.process(testFullScanEvent)
     return console.log(`Express is listening at http://localhost:${port}`);
 });
 // unpack, then try to save to db
