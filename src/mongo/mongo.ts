@@ -2,6 +2,7 @@ import { Collection, MongoClient } from 'mongodb';
 import { Attrib, Directory } from './types/schema';
 import { DaemonHardwareEvent } from '../providers/types/hardwareEvent';
 import { DaemonFileSystemChangeEvent } from '../providers/types/fileSystemChangeEvent';
+import { FileData } from '../providers/types/fullScanEvent';
 
 class MongoDB {
     private static _instance: MongoDB;
@@ -62,10 +63,40 @@ class MongoDB {
         path: string,
         attrib: Attrib
     ): Promise<Boolean> => {
+        const now: Date = new Date();
         const document: Directory =
             await this.directoriesCollection.findOneAndUpdate(
                 { path },
-                { $set: { attrib, updatedAt: new Date() } }
+                { $set: { attrib, updatedAt: now, modifiedAt: now } }
+            );
+
+        console.log(document);
+
+        return !!document;
+    };
+
+    public updateDirectoryData = async (
+        path: string,
+        data: FileData
+    ): Promise<Boolean> => {
+        const now: Date = new Date();
+        const document: Directory =
+            await this.directoriesCollection.findOneAndUpdate(
+                { path },
+                { $set: { ...data, updatedAt: now, modifiedAt: now } }
+            );
+
+        console.log(document);
+
+        return !!document;
+    };
+
+    public updateModifiedAt = async (path: string): Promise<Boolean> => {
+        const now: Date = new Date();
+        const document: Directory =
+            await this.directoriesCollection.findOneAndUpdate(
+                { path },
+                { $set: { updatedAt: now, modifiedAt: now } }
             );
 
         console.log(document);

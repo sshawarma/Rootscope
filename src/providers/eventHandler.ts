@@ -19,23 +19,14 @@ class EventHandler {
 
     private fileSystemChangeEventProvider: FileSystemChangeEventProvider;
 
-    // private mongo: MongoDB;
-
-    // private eventProcessors: Record<EventType, () => void>;
+    private mongo: MongoDB;
 
     private constructor() {
         this.fullScanEventProvider = FullScanEventProvider.getInstance();
         this.hardwareEventProvider = HardwareEventProvider.getInstance();
         this.fileSystemChangeEventProvider =
             FileSystemChangeEventProvider.getInstance();
-        // this.mongo = MongoDB.getInstance();
-        // this.eventProcessors = {
-        //     [EventType.Unknown]: () => console.log('unknown event oh no'),
-        //     [EventType.FullScan]: this.fullScanEventProvider.process.bind(this.fullScanEventProvider),
-        //     [EventType.FilesystemChange]: () => console.log('implement later'),
-        //     [EventType.NetworkChange]: () => console.log('implement later'),
-        //     [EventType.HardwareChange]: this.hardwareEventProvider.process.bind(this.hardwareEventProvider),
-        //   };
+        this.mongo = MongoDB.getInstance();
     }
 
     public getEventProcessor(eventType: EventType): (event: any) => void {

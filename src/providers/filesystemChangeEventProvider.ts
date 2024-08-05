@@ -11,15 +11,11 @@ export enum Action {
     Modify = 'modify',
     CloseWrite = 'close-write',
     CloseNowrite = 'close-nowrite',
-    Open = 'open',
     MovedFrom = 'moved_from',
     MovedTo = 'moved_to',
     Create = 'create',
     Delete = 'delete',
     DeleteSelf = 'delete-self',
-    MoveSelf = 'move-self',
-    FilesystemError = 'filesystem-error',
-    ChildAction = 'child-action',
     Rename = 'rename',
     SubDirectory = 'sub-directory',
     Unknown = 'unknown'
@@ -59,8 +55,6 @@ class FileSystemChangeEventProvider {
                 return Action.CloseWrite;
             case 1 << 4:
                 return Action.CloseNowrite;
-            case 1 << 5:
-                return Action.Open;
             case 1 << 6:
                 return Action.MovedFrom;
             case 1 << 7:
@@ -71,14 +65,6 @@ class FileSystemChangeEventProvider {
                 return Action.Delete;
             case 1 << 10:
                 return Action.DeleteSelf;
-            case 1 << 11:
-                return Action.MoveSelf;
-            case 1 << 15:
-                return Action.FilesystemError;
-            case 1 << 27:
-                return Action.ChildAction;
-            case 1 << 32:
-                return Action.Rename;
             case 1 << 34:
                 return Action.SubDirectory;
             default:
@@ -103,24 +89,25 @@ class FileSystemChangeEventProvider {
         (event: FileSystemChangeEvent) => void
     > = {
         [Action.Access]: () => {
-            console.log('access');
+            console.log('Access Action');
         },
         [Action.Attrib]: (event) => {
-            this.changeEventActionProvider.handleAttrib.bind(
+            return this.changeEventActionProvider.handleAttrib.bind(
                 this.changeEventActionProvider
             )(event);
         },
-        [Action.Modify]: () => {
-            console.log('modify');
+        [Action.Modify]: (event) => {
+            this.changeEventActionProvider.handleModify.bind(
+                this.changeEventActionProvider
+            )(event);
         },
-        [Action.CloseWrite]: () => {
-            console.log('closewrite');
+        [Action.CloseWrite]: (event) => {
+            this.changeEventActionProvider.handleCloseWrite.bind(
+                this.changeEventActionProvider
+            )(event);
         },
         [Action.CloseNowrite]: () => {
-            console.log('closenowrite');
-        },
-        [Action.Open]: () => {
-            console.log('opem');
+            console.log('CloseNoWrite Action');
         },
         [Action.MovedFrom]: () => {
             console.log('access');
@@ -135,15 +122,6 @@ class FileSystemChangeEventProvider {
             console.log('access');
         },
         [Action.DeleteSelf]: () => {
-            console.log('access');
-        },
-        [Action.MoveSelf]: () => {
-            console.log('access');
-        },
-        [Action.FilesystemError]: () => {
-            console.log('access');
-        },
-        [Action.ChildAction]: () => {
             console.log('access');
         },
         [Action.Rename]: () => {

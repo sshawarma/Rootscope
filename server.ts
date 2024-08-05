@@ -47,7 +47,7 @@ client.on('message', function (topic, message) {
 
 app.listen(port, () => {
     const eventHandler: EventHandler = EventHandler.getInstance();
-    // eventHandler.process(testFullScanEvent)
+    // eventHandler.process(testEvent)
     return console.log(`Express is listening at http://localhost:${port}`);
 });
 // unpack, then try to save to db

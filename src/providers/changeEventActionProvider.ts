@@ -31,6 +31,21 @@ class ChangeEventActionProvider {
             event.new_data.data.attrib
         );
     };
+
+    public handleModify = async (
+        event: FileSystemChangeEvent
+    ): Promise<void> => {
+        await this.mongo.updateDirectoryData(
+            event.location,
+            event.new_data.data
+        );
+    };
+
+    public handleCloseWrite = async (
+        event: FileSystemChangeEvent
+    ): Promise<void> => {
+        await this.mongo.updateModifiedAt(event.location);
+    };
 }
 
 export default ChangeEventActionProvider;

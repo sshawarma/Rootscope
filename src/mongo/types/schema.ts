@@ -13,7 +13,7 @@ export interface Attrib {
 }
 
 export interface Directory {
-    parentId?: ObjectId
+    parentId?: ObjectId;
     path: string;
     status: string;
     type: string;
@@ -29,5 +29,6 @@ export interface Directory {
     _id?: ObjectId;
     createdAt: Date;
     updatedAt: Date;
+    modifiedAt?: Date;
     children: ObjectId[];
 }
