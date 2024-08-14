@@ -1,4 +1,4 @@
-import { Collection, MongoClient } from 'mongodb';
+import { Collection, DeleteResult, MongoClient } from 'mongodb';
 import { Attrib, Directory } from './types/schema';
 import { DaemonHardwareEvent } from '../providers/types/hardwareEvent';
 import { DaemonFileSystemChangeEvent } from '../providers/types/fileSystemChangeEvent';
@@ -18,7 +18,7 @@ class MongoDB {
 
             this.directoriesCollection = this.client
                 .db('rootscope')
-                .collection('directories');
+                .collection('Copy_of_directories');
             this.hardwareEventsCollection = this.client
                 .db('rootscope')
                 .collection('hardwareEvents');
@@ -102,6 +102,70 @@ class MongoDB {
         console.log(document);
 
         return !!document;
+    };
+    /*
+     Function to generate regex patterns for the exact path and its parent directories
+     Returns: A regex of an exact match for the path and parent directories
+     */
+    private generateParentPathRegex = (path: string) => {
+        const pathParts = path.split('/').filter(Boolean); // Split the path and filter out empty parts
+        const regexPatterns = pathParts.map(
+            (_, i) => `^/${pathParts.slice(0, i + 1).join('/')}$`
+        );
+        const joinedRegexPatterns = regexPatterns.join('|');
+        return new RegExp(joinedRegexPatterns);
+    };
+
+    /*
+    The first part of this operation will find every directory that is hierarchically higher than the provided path
+    Secondly it will update each of those records values by the passed values
+    The use of regex is unfortunate, but this completes the recursive operation in a linear way
+    The provided path argument must not end with a "/"
+    */
+    public updateDuAndCuSize = async (
+        path: string,
+        duDifference: number,
+        cuDifference: number
+    ) => {
+        const regex = this.generateParentPathRegex(path);
+        return this.directoriesCollection.updateMany(
+            {
+                $or: [
+                    { path: path },
+                    {
+                        path: {
+                            $regex: regex
+                        }
+                    }
+                ]
+            },
+            { $inc: { du: duDifference, cu_size: cuDifference } }
+        );
+    };
+
+    public deleteDirectoryAndChildren = async (path: string) => {
+        const regexDeleteDirectoryAndChildrenPatternString = `^${path}(?:/[^/]+)*$`;
+        const regex: RegExp = new RegExp(
+            regexDeleteDirectoryAndChildrenPatternString
+        );
+
+        const rootDirectoryToDelete: Directory =
+            await this.directoriesCollection.findOne({ path });
+
+        if (!rootDirectoryToDelete) {
+            console.log('Directory to delete not found');
+            return;
+        }
+        const duDifference: number = rootDirectoryToDelete.du * -1;
+        const cuDifference: number = rootDirectoryToDelete.cu_size * -1;
+        const deleteObject: DeleteResult =
+            await this.directoriesCollection.deleteMany({
+                path: { $regex: regex }
+            });
+        const deletedCount: number = deleteObject.deletedCount;
+        console.log(deletedCount);
+        if (deletedCount > 0)
+            await this.updateDuAndCuSize(path, duDifference, cuDifference);
     };
 }
 

@@ -118,11 +118,13 @@ class FileSystemChangeEventProvider {
         [Action.Create]: () => {
             console.log('access');
         },
-        [Action.Delete]: () => {
-            console.log('access');
+        [Action.Delete]: (event) => {
+            this.changeEventActionProvider.handleDelete.bind(
+                this.changeEventActionProvider
+            )(event);
         },
         [Action.DeleteSelf]: () => {
-            console.log('access');
+            console.log('DeleteSelf Action');
         },
         [Action.Rename]: () => {
             console.log('access');

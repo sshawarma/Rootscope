@@ -46,6 +46,12 @@ class ChangeEventActionProvider {
     ): Promise<void> => {
         await this.mongo.updateModifiedAt(event.location);
     };
+
+    public handleDelete = async (
+        event: FileSystemChangeEvent
+    ): Promise<void> => {
+        await this.mongo.deleteDirectoryAndChildren(event.location);
+    };
 }
 
 export default ChangeEventActionProvider;
