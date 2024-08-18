@@ -1,9 +1,9 @@
-import MongoDB from '../mongo/mongo';
+import MongoDB from '../../mongo/mongo';
 import ChangeEventActionProvider from './changeEventActionProvider';
 import {
     DaemonFileSystemChangeEvent,
     FileSystemChangeEvent
-} from './types/fileSystemChangeEvent';
+} from '../types/fileSystemChangeEvent';
 
 export enum Action {
     Attrib = 'attrib',

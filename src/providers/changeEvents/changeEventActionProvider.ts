@@ -1,5 +1,5 @@
-import MongoDB from '../mongo/mongo';
-import { FileSystemChangeEvent } from './types/fileSystemChangeEvent';
+import MongoDB from '../../mongo/mongo';
+import { FileSystemChangeEvent } from '../types/fileSystemChangeEvent';
 
 class ChangeEventActionProvider {
     private static _instance: ChangeEventActionProvider;

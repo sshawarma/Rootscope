@@ -1,17 +1,27 @@
 import {
     DaemonFileSystemChangeEvent,
     EventType
-} from './fileSystemChangeEvent';
+} from '../types/fileSystemChangeEvent';
 import { DaemonFullScanEvent } from './fullScanEvent';
 import { DaemonHardwareEvent } from './hardwareEvent';
 
 export interface DaemonEvent {
     event_type: EventType;
-    event_data:
-        | DaemonFullScanEvent
-        | DaemonHardwareEvent
-        | DaemonFileSystemChangeEvent;
+    event_data: EventData
 }
+
+export interface EventPacket {
+    message_id: string;
+    total_packets: number;
+    event_type: number;
+    sequence_number: number;
+    packed_data: string;
+}
+
+export type EventData =
+    | DaemonFullScanEvent
+    | DaemonHardwareEvent
+    | DaemonFileSystemChangeEvent;
 
 export const testFullScanEvent: DaemonEvent = {
     event_type: 1,

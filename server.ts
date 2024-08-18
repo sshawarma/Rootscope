@@ -2,9 +2,8 @@ import express from 'express';
 import mqtt from 'mqtt';
 import 'dotenv/config';
 
-import MsgPack from './src/lib/msgpack';
-import EventHandler from './src/providers/eventHandler';
-import { DaemonEvent } from './src/providers/types/daemonEvent';
+import { EventPacket } from './src/providers/types/daemonEvent';
+import EventPacketHandler from './src/providers/packets/packetHandler';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,24 +22,24 @@ client.on('connect', function () {
 });
 
 client.on('message', function (topic, message) {
-    const msgPack: MsgPack = MsgPack.getInstance();
-    // const eventHandler: EventHandler = EventHandler.getInstance();
+    const packetHandler: EventPacketHandler = EventPacketHandler.getInstance()
+    const mqttMessage: EventPacket = JSON.parse(message.toString());
+    console.log('unstring', message);
+    packetHandler.process(mqttMessage)
+
     console.log(
         `Message received from topic: ${topic} \n
          Message content as string: ${message.toString()}`
     );
 
     try {
-        const unpackedMessage: DaemonEvent = msgPack.unpackMessage(message);
-        console.log('unpackedMessage:', unpackedMessage);
-        // eventHandler.process(unpackedMessage)
+        console.log('unpackedMessage:');
+
         client.publish('rootscope-daemon-ack', 'success');
     } catch (error) {
         console.log('failed to unpack message');
         client.publish('rootscope-daemon-ack', 'failure');
     }
-
-    // eventHandler.process(fullScanEvent)
 });
 
 app.listen(port, () => {

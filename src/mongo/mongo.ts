@@ -1,8 +1,10 @@
-import { Collection, DeleteResult, MongoClient } from 'mongodb';
+import { Collection, Db, DeleteResult, MongoClient } from 'mongodb';
 import { Attrib, Directory } from './types/schema';
 import { DaemonHardwareEvent } from '../providers/types/hardwareEvent';
-import { DaemonFileSystemChangeEvent } from '../providers/types/fileSystemChangeEvent';
+
 import { FileData } from '../providers/types/fullScanEvent';
+import { EventPacket } from '../providers/types/daemonEvent';
+import { DaemonFileSystemChangeEvent } from '../providers/types/fileSystemChangeEvent';
 
 class MongoDB {
     private static _instance: MongoDB;
@@ -10,21 +12,21 @@ class MongoDB {
     private directoriesCollection: Collection<Directory>;
     private hardwareEventsCollection: Collection<DaemonHardwareEvent>;
     private fileSystemChangeEventsCollection: Collection<DaemonFileSystemChangeEvent>;
+    private eventPacketsCollection: Collection<EventPacket>;
 
     private constructor() {
         try {
             this.client = new MongoClient(process.env.MONGO_URI);
             this.client.connect();
 
-            this.directoriesCollection = this.client
-                .db('rootscope')
-                .collection('Copy_of_directories');
-            this.hardwareEventsCollection = this.client
-                .db('rootscope')
-                .collection('hardwareEvents');
-            this.fileSystemChangeEventsCollection = this.client
-                .db('rootscope')
-                .collection('fileSystemChangeEvents');
+            const db: Db = this.client.db('rootscope');
+
+            this.directoriesCollection = db.collection('directories');
+            this.hardwareEventsCollection = db.collection('hardwareEvents');
+            this.eventPacketsCollection = db.collection('eventPackets');
+            this.fileSystemChangeEventsCollection = db.collection(
+                'fileSystemChangeEvents'
+            );
         } catch {
             console.log('Failed to establish mongo connection');
         }
@@ -57,6 +59,14 @@ class MongoDB {
         event: DaemonFileSystemChangeEvent
     ) => {
         await this.fileSystemChangeEventsCollection.insertOne(event);
+    };
+
+    public insertEventPacket = async (eventPacket: EventPacket) => {
+        await this.eventPacketsCollection.insertOne(eventPacket);
+    };
+
+    public queryEventPackets = async (message_id: string) => {
+        return this.eventPacketsCollection.find({ message_id }).toArray(); // is there a better way to do this instead of checking arr length
     };
 
     public updateAttributes = async (

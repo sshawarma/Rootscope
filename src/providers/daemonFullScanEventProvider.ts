@@ -23,7 +23,7 @@ class FullScanEventProvider {
 
     public transformTree = (inputData: DaemonFullScanEvent): Directory[] => {
         const idToNode: { [key: string]: DaemonFullScanEvent } = {};
-        const Directorys: Directory[] = [];
+        const directories: Directory[] = [];
 
         const assignIds = (
             node: DaemonFullScanEvent,
@@ -38,7 +38,7 @@ class FullScanEventProvider {
                 assignIds(event, nodeId)
             );
             const now: Date = new Date();
-            Directorys.push({
+            directories.push({
                 ...node.data,
                 _id: nodeId,
                 children: childrenIds,
@@ -51,7 +51,7 @@ class FullScanEventProvider {
         };
 
         assignIds(inputData);
-        return Directorys;
+        return directories;
     };
 
     public process = async (event: DaemonFullScanEvent): Promise<void> => {

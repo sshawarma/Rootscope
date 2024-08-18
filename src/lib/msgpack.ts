@@ -1,6 +1,10 @@
 import { pack, unpack } from 'msgpackr';
 
-import { DaemonEvent } from '../providers/types/daemonEvent';
+import {
+    DaemonEvent,
+    EventData,
+    EventPacket
+} from '../providers/types/daemonEvent';
 
 class MsgPack {
     private static _instance: MsgPack;
@@ -20,18 +24,23 @@ class MsgPack {
         return pack(valueToPack);
     };
 
-    public unpackMessage = (valueToUnpack: Buffer): DaemonEvent => {
-        let unpackedMessage: any;
-
+    public unpackMessage = (valueToUnpack: Buffer): EventData => {
         try {
-            unpackedMessage = unpack(valueToUnpack);
+            return unpack(valueToUnpack).event_data;
         } catch (error) {
             console.log('Could not unpack message', error);
         }
-        if (this.isDaemonEvent(unpackedMessage)) {
-            return unpackedMessage;
-        }
-        console.log('Could not unpack message:', valueToUnpack);
+    };
+
+    public orderAndUnpackEventPackets = (
+        eventPackets: EventPacket[]
+    ): EventData => {
+        const packedData: string = eventPackets
+            .sort((a, b) => (a.sequence_number > b.sequence_number ? 1 : -1))
+            .map((packet) => packet.packed_data)
+            .join('');
+        const bufferData: Buffer = Buffer.from(packedData, 'base64');
+        return this.unpackMessage(bufferData);
     };
 
     private isDaemonEvent = (obj: any): obj is DaemonEvent => {

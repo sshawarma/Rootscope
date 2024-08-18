@@ -7,7 +7,7 @@ import {
     isDaemonFullScanEvent
 } from './types/typeGuards';
 import HardwareEventProvider from './daemonHardwareEventProvider';
-import FileSystemChangeEventProvider from './filesystemChangeEventProvider';
+import FileSystemChangeEventProvider from './changeEvents/filesystemChangeEventProvider';
 import { EventType } from './types/fileSystemChangeEvent';
 
 class EventHandler {
@@ -19,14 +19,12 @@ class EventHandler {
 
     private fileSystemChangeEventProvider: FileSystemChangeEventProvider;
 
-    private mongo: MongoDB;
 
     private constructor() {
         this.fullScanEventProvider = FullScanEventProvider.getInstance();
         this.hardwareEventProvider = HardwareEventProvider.getInstance();
         this.fileSystemChangeEventProvider =
             FileSystemChangeEventProvider.getInstance();
-        this.mongo = MongoDB.getInstance();
     }
 
     public getEventProcessor(eventType: EventType): (event: any) => void {
