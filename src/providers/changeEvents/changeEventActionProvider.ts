@@ -1,4 +1,6 @@
+import { transformTree } from '../../lib/transformTree';
 import MongoDB from '../../mongo/mongo';
+import { Directory } from '../../mongo/types/schema';
 import { FileSystemChangeEvent } from '../types/fileSystemChangeEvent';
 
 class ChangeEventActionProvider {
@@ -26,10 +28,16 @@ class ChangeEventActionProvider {
             console.log('No attributes field for event:', event);
             return;
         }
-        await this.mongo.updateAttributes(
+        const updateResult: Boolean = await this.mongo.updateAttributes(
             event.location,
             event.new_data.data.attrib
         );
+        if (!updateResult) {
+            console.log(
+                'Attribute did not get updated at path: ',
+                event.location
+            );
+        }
     };
 
     public handleModify = async (
@@ -51,6 +59,18 @@ class ChangeEventActionProvider {
         event: FileSystemChangeEvent
     ): Promise<void> => {
         await this.mongo.deleteDirectoryAndChildren(event.location);
+    };
+
+    public handleCreate = async (
+        event: FileSystemChangeEvent
+    ): Promise<void> => {
+        const transformedDirectories: Directory[] = transformTree(
+            event.new_data
+        );
+        this.mongo.createDirectoriesAndUpdateSizes(
+            transformedDirectories,
+            event.location
+        );
     };
 }
 

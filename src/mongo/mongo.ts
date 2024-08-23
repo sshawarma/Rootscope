@@ -1,7 +1,8 @@
 import { Collection, Db, DeleteResult, MongoClient } from 'mongodb';
+import { dirname } from 'path';
+
 import { Attrib, Directory } from './types/schema';
 import { DaemonHardwareEvent } from '../providers/types/hardwareEvent';
-
 import { FileData } from '../providers/types/fullScanEvent';
 import { EventPacket } from '../providers/types/daemonEvent';
 import { DaemonFileSystemChangeEvent } from '../providers/types/fileSystemChangeEvent';
@@ -80,7 +81,7 @@ class MongoDB {
                 { $set: { attrib, updatedAt: now, modifiedAt: now } }
             );
 
-        console.log(document);
+        console.log('attr', document);
 
         return !!document;
     };
@@ -96,8 +97,6 @@ class MongoDB {
                 { $set: { ...data, updatedAt: now, modifiedAt: now } }
             );
 
-        console.log(document);
-
         return !!document;
     };
 
@@ -109,7 +108,6 @@ class MongoDB {
                 { $set: { updatedAt: now, modifiedAt: now } }
             );
 
-        console.log(document);
 
         return !!document;
     };
@@ -153,8 +151,12 @@ class MongoDB {
         );
     };
 
+    /*
+    Uses the passed path to delete any dir equal to or deeper then it
+    Subtracts CU and DU size of all paths higher then the provided path
+    */
     public deleteDirectoryAndChildren = async (path: string) => {
-        const regexDeleteDirectoryAndChildrenPatternString = `^${path}(?:/[^/]+)*$`;
+        const regexDeleteDirectoryAndChildrenPatternString = `^${path}(?:/[^/]+)*$`; // will match to any path equal to or deeper than
         const regex: RegExp = new RegExp(
             regexDeleteDirectoryAndChildrenPatternString
         );
@@ -176,6 +178,46 @@ class MongoDB {
         console.log(deletedCount);
         if (deletedCount > 0)
             await this.updateDuAndCuSize(path, duDifference, cuDifference);
+    };
+
+    /*
+    Inserts the directories similar to the full scan
+    Updates the children array of the directory we inserted into
+    Updates the CU and DU size of all records higher then the passed path
+    If there is a parent dir then we assign its Id as the inserted directories parentId
+     */
+    public createDirectoriesAndUpdateSizes = async (
+        directories: Directory[],
+        path: string
+    ) => {
+        await this.insertNewDirectoryList(directories);
+        const topLevelCreateDirectory: Directory = directories.find(
+            (directory) => !directory.parentId
+        );
+
+        const pathOneLevelUp: string = dirname(path);
+        const directoryAtPath: Directory =
+            await this.directoriesCollection.findOneAndUpdate(
+                { path: pathOneLevelUp },
+                { $push: { children: topLevelCreateDirectory._id } }
+            );
+
+        await this.updateDuAndCuSize(
+            pathOneLevelUp,
+            topLevelCreateDirectory.du,
+            topLevelCreateDirectory.cu_size
+        );
+        if (!directoryAtPath) {
+            console.log(
+                'During file system create no directory was found at: ',
+                path
+            );
+            return;
+        }
+        await this.directoriesCollection.findOneAndUpdate(
+            { _id: topLevelCreateDirectory._id },
+            { $set: { parentId: directoryAtPath._id } }
+        );
     };
 }
 

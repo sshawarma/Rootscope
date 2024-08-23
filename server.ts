@@ -26,7 +26,7 @@ client.on('message', function (topic, message) {
     const packetHandler: EventPacketHandler = EventPacketHandler.getInstance();
     const mqttMessage: EventPacket = JSON.parse(message.toString());
     // packetHandler.process(mqttMessage)
-    console.log(message.toString())
+    console.log(message.toString());
     // const y: Buffer = Buffer.from(mqttMessage.packed_data, 'base64');
 
     // console.log(unpack(y));

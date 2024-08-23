@@ -86,23 +86,23 @@ class FileSystemChangeEventProvider {
 
     private actionHandler: Record<
         Action,
-        (event: FileSystemChangeEvent) => void
+        (event: FileSystemChangeEvent) => Promise<void> | void
     > = {
         [Action.Access]: () => {
             console.log('Access Action');
         },
-        [Action.Attrib]: (event) => {
-            return this.changeEventActionProvider.handleAttrib.bind(
+        [Action.Attrib]: async (event) => {
+            await this.changeEventActionProvider.handleAttrib.bind(
                 this.changeEventActionProvider
             )(event);
         },
-        [Action.Modify]: (event) => {
-            this.changeEventActionProvider.handleModify.bind(
+        [Action.Modify]: async (event) => {
+            await this.changeEventActionProvider.handleModify.bind(
                 this.changeEventActionProvider
             )(event);
         },
-        [Action.CloseWrite]: (event) => {
-            this.changeEventActionProvider.handleCloseWrite.bind(
+        [Action.CloseWrite]: async (event) => {
+            await this.changeEventActionProvider.handleCloseWrite.bind(
                 this.changeEventActionProvider
             )(event);
         },
@@ -115,8 +115,10 @@ class FileSystemChangeEventProvider {
         [Action.MovedTo]: () => {
             console.log('access');
         },
-        [Action.Create]: () => {
-            console.log('access');
+        [Action.Create]: async (event) => {
+            await this.changeEventActionProvider.handleCreate.bind(
+                this.changeEventActionProvider
+            )(event);
         },
         [Action.Delete]: (event) => {
             this.changeEventActionProvider.handleDelete.bind(
@@ -133,7 +135,7 @@ class FileSystemChangeEventProvider {
             console.log('access');
         },
         [Action.Unknown]: () => {
-            console.log('access');
+            console.log('Unknown');
         }
     };
 
@@ -141,18 +143,12 @@ class FileSystemChangeEventProvider {
         daemonEvent: DaemonFileSystemChangeEvent
     ): Promise<void> => {
         await this.mongo.insertFileSystemChangeEvent(daemonEvent);
-        // iterate the events
-        daemonEvent.events.forEach((event) => {
+        daemonEvent.events.forEach(async (event) => {
             const actions: Action[] = this.decodeAction(event.actions);
-            actions.forEach((action) => {
-                this.actionHandler[action](event);
+            actions.forEach(async (action) => {
+                await this.actionHandler[action](event);
             });
         });
-        // decode the action int
-        // based on the actions perform operations
-        // actions come in groups eg. attrib/close-write so we must perform both if they both require operations
-        // not all actions require operations
-        // must be modular so we can concatenate operations together since there are many permutations
     };
 }
 
