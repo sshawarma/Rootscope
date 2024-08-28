@@ -7,7 +7,7 @@ import { DaemonHardwareEvent } from './hardwareEvent';
 
 export interface DaemonEvent {
     event_type: EventType;
-    event_data: EventData
+    event_data: EventData;
 }
 
 export interface EventPacket {
@@ -18,10 +18,17 @@ export interface EventPacket {
     packed_data: string;
 }
 
+export interface DaemonStatusEvent {
+    created_at: number;
+    status: string;
+    reason: string;
+}
+
 export type EventData =
     | DaemonFullScanEvent
     | DaemonHardwareEvent
-    | DaemonFileSystemChangeEvent;
+    | DaemonFileSystemChangeEvent
+    | DaemonStatusEvent;
 
 export const testFullScanEvent: DaemonEvent = {
     event_type: 1,

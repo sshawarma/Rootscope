@@ -1,15 +1,15 @@
 import { transformTree } from '../../lib/transformTree';
-import MongoDB from '../../mongo/mongo';
+import DirectoriesRepository from '../../mongo/directoriesRepository';
 import { Directory } from '../../mongo/types/schema';
 import { FileSystemChangeEvent } from '../types/fileSystemChangeEvent';
 
 class ChangeEventActionProvider {
     private static _instance: ChangeEventActionProvider;
 
-    private mongo: MongoDB;
+    private directoriesRepository: DirectoriesRepository;
 
     private constructor() {
-        this.mongo = MongoDB.getInstance();
+        this.directoriesRepository = DirectoriesRepository.getInstance();
     }
 
     static getInstance() {
@@ -28,10 +28,11 @@ class ChangeEventActionProvider {
             console.log('No attributes field for event:', event);
             return;
         }
-        const updateResult: Boolean = await this.mongo.updateAttributes(
-            event.location,
-            event.new_data.data.attrib
-        );
+        const updateResult: Boolean =
+            await this.directoriesRepository.updateAttributes(
+                event.location,
+                event.new_data.data.attrib
+            );
         if (!updateResult) {
             console.log(
                 'Attribute did not get updated at path: ',
@@ -43,7 +44,7 @@ class ChangeEventActionProvider {
     public handleModify = async (
         event: FileSystemChangeEvent
     ): Promise<void> => {
-        await this.mongo.updateDirectoryData(
+        await this.directoriesRepository.updateDirectoryData(
             event.location,
             event.new_data.data
         );
@@ -52,13 +53,15 @@ class ChangeEventActionProvider {
     public handleCloseWrite = async (
         event: FileSystemChangeEvent
     ): Promise<void> => {
-        await this.mongo.updateModifiedAt(event.location);
+        await this.directoriesRepository.updateModifiedAt(event.location);
     };
 
     public handleDelete = async (
         event: FileSystemChangeEvent
     ): Promise<void> => {
-        await this.mongo.deleteDirectoryAndChildren(event.location);
+        await this.directoriesRepository.deleteDirectoryAndChildren(
+            event.location
+        );
     };
 
     public handleCreate = async (
@@ -67,7 +70,7 @@ class ChangeEventActionProvider {
         const transformedDirectories: Directory[] = transformTree(
             event.new_data
         );
-        this.mongo.createDirectoriesAndUpdateSizes(
+        this.directoriesRepository.createDirectoriesAndUpdateSizes(
             transformedDirectories,
             event.location
         );

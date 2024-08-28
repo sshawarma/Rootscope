@@ -5,7 +5,8 @@ export enum EventType {
     FullScan = 1,
     FilesystemChange = 2,
     NetworkChange = 3,
-    HardwareChange = 4
+    HardwareChange = 4,
+    DaemonStatus = 5
 }
 
 export interface ProcessId {

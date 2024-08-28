@@ -1,9 +1,9 @@
-import MongoDB from '../../mongo/mongo';
 import ChangeEventActionProvider from './changeEventActionProvider';
 import {
     DaemonFileSystemChangeEvent,
     FileSystemChangeEvent
 } from '../types/fileSystemChangeEvent';
+import DaemonFileSystemChangeEventRepository from '../../mongo/daemonFileSystemChangeEventRepository';
 
 export enum Action {
     Attrib = 'attrib',
@@ -26,10 +26,11 @@ class FileSystemChangeEventProvider {
 
     private changeEventActionProvider: ChangeEventActionProvider;
 
-    private mongo: MongoDB;
+    private fileSystemChangeEventRepository: DaemonFileSystemChangeEventRepository;
 
     private constructor() {
-        this.mongo = MongoDB.getInstance();
+        this.fileSystemChangeEventRepository =
+            DaemonFileSystemChangeEventRepository.getInstance();
         this.changeEventActionProvider =
             ChangeEventActionProvider.getInstance();
     }
@@ -109,11 +110,17 @@ class FileSystemChangeEventProvider {
         [Action.CloseNowrite]: () => {
             console.log('CloseNoWrite Action');
         },
-        [Action.MovedFrom]: () => {
-            console.log('access');
+        [Action.MovedFrom]: (event) => {
+            this.changeEventActionProvider.handleDelete.bind(
+                this.changeEventActionProvider
+            )(event);
+            // can just treat as a delete for now
         },
-        [Action.MovedTo]: () => {
-            console.log('access');
+        [Action.MovedTo]: async (event) => {
+            await this.changeEventActionProvider.handleCreate.bind(
+                this.changeEventActionProvider
+            )(event);
+            // can treat as a create for now, ideally we will just modify paths and cu/du when paired with a movefrom so we do not need to delete+create
         },
         [Action.Create]: async (event) => {
             await this.changeEventActionProvider.handleCreate.bind(
@@ -142,10 +149,13 @@ class FileSystemChangeEventProvider {
     public process = async (
         daemonEvent: DaemonFileSystemChangeEvent
     ): Promise<void> => {
-        await this.mongo.insertFileSystemChangeEvent(daemonEvent);
+        await this.fileSystemChangeEventRepository.insertFileSystemChangeEvent(
+            daemonEvent
+        );
         daemonEvent.events.forEach(async (event) => {
             const actions: Action[] = this.decodeAction(event.actions);
             actions.forEach(async (action) => {
+                console.log(action)
                 await this.actionHandler[action](event);
             });
         });

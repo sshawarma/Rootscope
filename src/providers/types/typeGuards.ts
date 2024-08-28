@@ -1,3 +1,4 @@
+import { DaemonStatusEvent } from './daemonEvent';
 import { DaemonFileSystemChangeEvent } from './fileSystemChangeEvent';
 import { DaemonFullScanEvent } from './fullScanEvent';
 import { DaemonHardwareEvent } from './hardwareEvent';
@@ -14,4 +15,8 @@ export const isDaemonFileSystemChangeEvent = (
     obj: any
 ): obj is DaemonFileSystemChangeEvent => {
     return obj?.events;
+};
+
+export const isDaemonStatusEvent = (obj: any): obj is DaemonStatusEvent => {
+    return obj?.status && obj?.reason;
 };

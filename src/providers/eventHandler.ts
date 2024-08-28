@@ -4,11 +4,13 @@ import FullScanEventProvider from './daemonFullScanEventProvider';
 import MongoDB from '../mongo/mongo';
 import {
     isDaemonFileSystemChangeEvent,
-    isDaemonFullScanEvent
+    isDaemonFullScanEvent,
+    isDaemonStatusEvent
 } from './types/typeGuards';
 import HardwareEventProvider from './daemonHardwareEventProvider';
 import FileSystemChangeEventProvider from './changeEvents/filesystemChangeEventProvider';
 import { EventType } from './types/fileSystemChangeEvent';
+import DaemonStatusEventProvider from './daemonStatusEventProvider';
 
 class EventHandler {
     private static _instance: EventHandler;
@@ -19,6 +21,7 @@ class EventHandler {
 
     private fileSystemChangeEventProvider: FileSystemChangeEventProvider;
 
+    private daemonStatusEventProvider: DaemonStatusEventProvider;
 
     private constructor() {
         this.fullScanEventProvider = FullScanEventProvider.getInstance();
@@ -78,13 +81,22 @@ class EventHandler {
         );
     }
 
+    private processDaemonStatusEvent = (event: DaemonEvent) => {
+        console.log('Processing daemon status event');
+        const daemonEventData = event.event_data;
+        if (isDaemonStatusEvent(daemonEventData)) {
+            this.daemonStatusEventProvider.process(daemonEventData);
+        }
+    };
+
     private eventProcessors: Record<EventType, (event: DaemonEvent) => void> = {
         [EventType.Unknown]: this.processUnknownEvent.bind(this),
         [EventType.FullScan]: this.processFullScanEvent.bind(this),
         [EventType.FilesystemChange]:
             this.processFilesystemChangeEvent.bind(this),
         [EventType.NetworkChange]: this.processNetworkChangeEvent.bind(this),
-        [EventType.HardwareChange]: this.processHardwareChangeEvent.bind(this)
+        [EventType.HardwareChange]: this.processHardwareChangeEvent.bind(this),
+        [EventType.DaemonStatus]: this.processDaemonStatusEvent.bind(this)
     };
 
     static getInstance() {

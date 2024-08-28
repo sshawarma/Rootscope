@@ -1,13 +1,14 @@
-import MongoDB from '../mongo/mongo';
+import DaemonHardwareEventRepository from '../mongo/daemonHardwareEventRepository';
 import { DaemonHardwareEvent } from './types/hardwareEvent';
 
 class HardwareEventProvider {
     private static _instance: HardwareEventProvider;
 
-    private mongo: MongoDB;
+    private DaemonHardwareEventRepository: DaemonHardwareEventRepository;
 
     private constructor() {
-        this.mongo = MongoDB.getInstance();
+        this.DaemonHardwareEventRepository =
+            DaemonHardwareEventRepository.getInstance();
     }
 
     static getInstance() {
@@ -19,8 +20,8 @@ class HardwareEventProvider {
         return this._instance;
     }
 
-    public process = (directory: DaemonHardwareEvent): void => {
-        // this.mongo.insertHardwareEvent(directory)
+    public process = (event: DaemonHardwareEvent): void => {
+        this.DaemonHardwareEventRepository.insertHardwareEvent(event);
     };
 }
 
