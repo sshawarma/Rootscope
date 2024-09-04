@@ -1,6 +1,5 @@
 import MsgPack from '../../lib/msgpack';
 import EventPacketRepository from '../../mongo/eventPacketRepository';
-import MongoDB from '../../mongo/mongo';
 import EventHandler from '../eventHandler';
 import { DaemonEvent, EventData, EventPacket } from '../types/daemonEvent';
 
@@ -37,13 +36,10 @@ class EventPacketHandler {
         if (packets.length == eventPacket.total_packets) {
             const unpackedEventData: EventData =
                 this.msgPack.orderAndUnpackEventPackets(packets);
-            console.log(unpackedEventData);
             const daemonEvent: DaemonEvent = {
                 event_type: eventPacket.event_type,
                 event_data: unpackedEventData
             };
-
-            console.log(daemonEvent);
 
             this.eventHandler.process(daemonEvent);
         }

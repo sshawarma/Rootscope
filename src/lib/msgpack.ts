@@ -1,10 +1,6 @@
 import { pack, unpack } from 'msgpackr';
 
-import {
-    DaemonEvent,
-    EventData,
-    EventPacket
-} from '../providers/types/daemonEvent';
+import { EventData, EventPacket } from '../providers/types/daemonEvent';
 
 class MsgPack {
     private static _instance: MsgPack;
@@ -41,10 +37,6 @@ class MsgPack {
             .join('');
         const bufferData: Buffer = Buffer.from(packedData, 'base64');
         return this.unpackMessage(bufferData);
-    };
-
-    private isDaemonEvent = (obj: any): obj is DaemonEvent => {
-        return obj?.event_type && obj?.event_data;
     };
 }
 
