@@ -1,13 +1,13 @@
 import { ObjectId } from 'mongodb';
 import { DaemonEvent } from './types/daemonEvent';
-import FullScanEventProvider from './daemonFullScanEventProvider';
+import FullScanEventProvider from './fullScanEventProvider';
 import MongoDB from '../mongo/mongo';
 import {
     isDaemonFileSystemChangeEvent,
     isDaemonFullScanEvent,
     isDaemonStatusEvent
 } from './types/typeGuards';
-import HardwareEventProvider from './daemonHardwareEventProvider';
+import HardwareEventProvider from './hardwareEventProvider';
 import FileSystemChangeEventProvider from './changeEvents/filesystemChangeEventProvider';
 import { EventType } from './types/fileSystemChangeEvent';
 import DaemonStatusEventProvider from './daemonStatusEventProvider';
