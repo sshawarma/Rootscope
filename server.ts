@@ -5,6 +5,8 @@ import 'dotenv/config';
 import { EventPacket } from './src/providers/types/daemonEvent';
 import EventPacketHandler from './src/providers/packets/packetHandler';
 import MQTTClientProvider from './src/lib/mqttClientProvider';
+import FullScanEventProvider from './src/providers/fullScanEventProvider';
+import { fullScanTestEvent } from './testfiles/fullscan';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,7 +15,7 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-const mqttClient: MqttClient = MQTTClientProvider.getClient()
+const mqttClient: MqttClient = MQTTClientProvider.getClient();
 
 mqttClient.on('connect', function () {
     mqttClient.subscribe('rootscope-daemon2');
@@ -22,9 +24,11 @@ mqttClient.on('connect', function () {
 mqttClient.on('message', function (topic, message) {
     const packetHandler: EventPacketHandler = EventPacketHandler.getInstance();
     const mqttMessage: EventPacket = JSON.parse(message.toString());
-    packetHandler.process(mqttMessage)
+    packetHandler.process(mqttMessage);
 });
 
 app.listen(port, () => {
+    const x = FullScanEventProvider.getInstance();
+    x.process(fullScanTestEvent);
     return console.log(`Express is listening at http://localhost:${port}`);
 });

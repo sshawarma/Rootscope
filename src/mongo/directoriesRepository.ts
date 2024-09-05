@@ -16,7 +16,7 @@ class DirectoriesRepository {
 
             this.db = mongoDb.db;
 
-            this.collection = this.db.collection('directories');
+            this.collection = this.db.collection('Copy_of_directories');
         } catch {
             console.log('Failed to establish mongo connection');
         }
@@ -167,7 +167,7 @@ class DirectoriesRepository {
         const directoryAtPath: Directory =
             await this.collection.findOneAndUpdate(
                 { path: pathOneLevelUp },
-                { $push: { children: topLevelCreateDirectory._id } }
+                { $push: { children: topLevelCreateDirectory.path } }
             );
 
         await this.updateDuAndCuSize(
