@@ -30,5 +30,5 @@ export interface Directory {
     createdAt: Date;
     updatedAt: Date;
     modifiedAt?: Date;
-    children: ObjectId[];
+    children: string[];
 }

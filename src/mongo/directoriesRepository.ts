@@ -167,7 +167,7 @@ class DirectoriesRepository {
         const directoryAtPath: Directory =
             await this.collection.findOneAndUpdate(
                 { path: pathOneLevelUp },
-                { $push: { children: topLevelCreateDirectory._id } }
+                { $push: { children: topLevelCreateDirectory.path } }
             );
 
         await this.updateDuAndCuSize(
