@@ -16,7 +16,7 @@ class DirectoriesRepository {
 
             this.db = mongoDb.db;
 
-            this.collection = this.db.collection('Copy_of_directories');
+            this.collection = this.db.collection('directories');
         } catch {
             console.log('Failed to establish mongo connection');
         }
