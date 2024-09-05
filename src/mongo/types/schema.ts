@@ -14,6 +14,7 @@ export interface Attrib {
 
 export interface Directory {
     parentId?: ObjectId;
+    update_children?: Boolean;
     path: string;
     status: string;
     type: string;
@@ -21,9 +22,9 @@ export interface Directory {
     date_created: number;
     du: number;
     cu_size: number;
-    link: string | null;
-    device: string | null;
-    mounted: string | null;
+    link?: string;
+    device?: string;
+    mounted?: string;
     is_socket: number;
     is_fifo: number;
     _id?: ObjectId;

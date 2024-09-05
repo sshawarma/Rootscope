@@ -4,10 +4,10 @@ import { DaemonHardwareEvent } from './types/hardwareEvent';
 class HardwareEventProvider {
     private static _instance: HardwareEventProvider;
 
-    private DaemonHardwareEventRepository: DaemonHardwareEventRepository;
+    private daemonHardwareEventRepository: DaemonHardwareEventRepository;
 
     private constructor() {
-        this.DaemonHardwareEventRepository =
+        this.daemonHardwareEventRepository =
             DaemonHardwareEventRepository.getInstance();
     }
 
@@ -21,7 +21,7 @@ class HardwareEventProvider {
     }
 
     public process = (event: DaemonHardwareEvent): void => {
-        this.DaemonHardwareEventRepository.insertHardwareEvent(event);
+        this.daemonHardwareEventRepository.insertHardwareEvent(event);
     };
 }
 

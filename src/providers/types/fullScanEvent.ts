@@ -15,6 +15,8 @@ export interface FileData {
     is_fifo: number;
     _id?: ObjectId;
     parentId?: ObjectId;
+    date_modified?: number;
+    update_children?:boolean
 }
 
 export interface Attrib {

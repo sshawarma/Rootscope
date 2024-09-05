@@ -1,5 +1,4 @@
 import { Collection, Db, DeleteResult, MongoClient } from 'mongodb';
-import { DaemonHardwareEvent } from '../providers/types/hardwareEvent';
 import { Attrib, Directory } from './types/schema';
 import { FileData } from '../providers/types/fullScanEvent';
 import { dirname } from 'path';
@@ -187,6 +186,10 @@ class DirectoriesRepository {
             { $set: { parentId: directoryAtPath._id } }
         );
     };
+
+    public incrementalScan = (event: Directory[]) => {
+
+    }
 }
 
 export default DirectoriesRepository;
