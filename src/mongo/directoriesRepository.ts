@@ -1,4 +1,10 @@
-import { Collection, Db, DeleteResult, MongoClient } from 'mongodb';
+import {
+    Collection,
+    Db,
+    DeleteResult,
+    InsertOneResult,
+    MongoClient
+} from 'mongodb';
 import { DaemonHardwareEvent } from '../providers/types/hardwareEvent';
 import { Attrib, Directory } from './types/schema';
 import { FileData } from '../providers/types/fullScanEvent';
@@ -17,8 +23,8 @@ class DirectoriesRepository {
             this.db = mongoDb.db;
 
             this.collection = this.db.collection('directories');
-        } catch {
-            console.log('Failed to establish mongo connection');
+        } catch (error) {
+            console.log('Failed to establish mongo connection', error);
         }
     }
 
@@ -32,12 +38,21 @@ class DirectoriesRepository {
     }
 
     public insertNewDirectoryList = async (directoryList: Directory[]) => {
-        const insertPromises = directoryList.map((directory) =>
-            this.collection.insertOne({
-                ...directory,
-                _id: directory._id
-            })
-        );
+        let insertPromises: Promise<InsertOneResult<Directory>>[];
+        try {
+            insertPromises = directoryList.map((directory) =>
+                this.collection.insertOne({
+                    ...directory,
+                    _id: directory._id
+                })
+            );
+        } catch (error) {
+            console.log(
+                'DirectoriesRepository.insertNewDirectoryList - Failed to insertOne: ',
+                insertPromises,
+                error
+            );
+        }
         await Promise.allSettled(insertPromises);
     };
 
@@ -45,38 +60,62 @@ class DirectoriesRepository {
         path: string,
         attrib: Attrib
     ): Promise<Boolean> => {
-        const now: Date = new Date();
-        const document: Directory = await this.collection.findOneAndUpdate(
-            { path },
-            { $set: { attrib, updatedAt: now, modifiedAt: now } }
-        );
+        try {
+            const now: Date = new Date();
+            const document: Directory = await this.collection.findOneAndUpdate(
+                { path },
+                { $set: { attrib, updatedAt: now, modifiedAt: now } }
+            );
 
-        console.log('attr', document);
-
-        return !!document;
+            return !!document;
+        } catch (error) {
+            console.log(
+                'DirectoriesRepository.updateAttributes - Failed to findOneAndUpdate: ',
+                path,
+                attrib,
+                error
+            );
+        }
     };
 
     public updateDirectoryData = async (
         path: string,
         data: FileData
     ): Promise<Boolean> => {
-        const now: Date = new Date();
-        const document: Directory = await this.collection.findOneAndUpdate(
-            { path },
-            { $set: { ...data, updatedAt: now, modifiedAt: now } }
-        );
+        try {
+            const now: Date = new Date();
+            const document: Directory = await this.collection.findOneAndUpdate(
+                { path },
+                { $set: { ...data, updatedAt: now, modifiedAt: now } }
+            );
 
-        return !!document;
+            return !!document;
+        } catch (error) {
+            console.log(
+                'DirectoriesRepository.updateDirectoryData - Failed to findOneAndUpdate: ',
+                path,
+                data,
+                error
+            );
+        }
     };
 
     public updateModifiedAt = async (path: string): Promise<Boolean> => {
-        const now: Date = new Date();
-        const document: Directory = await this.collection.findOneAndUpdate(
-            { path },
-            { $set: { updatedAt: now, modifiedAt: now } }
-        );
+        try {
+            const now: Date = new Date();
+            const document: Directory = await this.collection.findOneAndUpdate(
+                { path },
+                { $set: { updatedAt: now, modifiedAt: now } }
+            );
 
-        return !!document;
+            return !!document;
+        } catch (error) {
+            console.log(
+                'DirectoriesRepository.updateModifiedAt - Failed to findOneAndUpdate: ',
+                path,
+                error
+            );
+        }
     };
 
     /*
@@ -103,20 +142,30 @@ class DirectoriesRepository {
         duDifference: number,
         cuDifference: number
     ) => {
-        const regex = this.generateParentPathRegex(path);
-        return this.collection.updateMany(
-            {
-                $or: [
-                    { path: path },
-                    {
-                        path: {
-                            $regex: regex
+        try {
+            const regex = this.generateParentPathRegex(path);
+            return this.collection.updateMany(
+                {
+                    $or: [
+                        { path: path },
+                        {
+                            path: {
+                                $regex: regex
+                            }
                         }
-                    }
-                ]
-            },
-            { $inc: { du: duDifference, cu_size: cuDifference } }
-        );
+                    ]
+                },
+                { $inc: { du: duDifference, cu_size: cuDifference } }
+            );
+        } catch (error) {
+            console.log(
+                'DirectoriesRepository.updateDuAndCuSize - Failed to updateMany: ',
+                path,
+                duDifference,
+                cuDifference,
+                error
+            );
+        }
     };
 
     /*
@@ -128,24 +177,45 @@ class DirectoriesRepository {
         const regex: RegExp = new RegExp(
             regexDeleteDirectoryAndChildrenPatternString
         );
+        let rootDirectoryToDelete: Directory;
+        try {
+            rootDirectoryToDelete = await this.collection.findOne({
+                path
+            });
 
-        const rootDirectoryToDelete: Directory = await this.collection.findOne({
-            path
-        });
-
-        if (!rootDirectoryToDelete) {
-            console.log('Directory to delete not found');
-            return;
+            if (!rootDirectoryToDelete) {
+                console.log(
+                    'DirectoriesRepository.deleteDirectoryAndChildren - Directory to delete not found'
+                );
+                // publish to mqtt
+                return;
+            }
+        } catch (error) {
+            console.log(
+                'DirectoriesRepository.deleteDirectoryAndChildren - Failed to findOne',
+                path,
+                error
+            );
         }
-        const duDifference: number = rootDirectoryToDelete.du * -1;
-        const cuDifference: number = rootDirectoryToDelete.cu_size * -1;
-        const deleteObject: DeleteResult = await this.collection.deleteMany({
-            path: { $regex: regex }
-        });
-        const deletedCount: number = deleteObject.deletedCount;
-        console.log(deletedCount);
-        if (deletedCount > 0)
-            await this.updateDuAndCuSize(path, duDifference, cuDifference);
+        try {
+            const duDifference: number = rootDirectoryToDelete.du * -1;
+            const cuDifference: number = rootDirectoryToDelete.cu_size * -1;
+            const deleteObject: DeleteResult = await this.collection.deleteMany(
+                {
+                    path: { $regex: regex }
+                }
+            );
+            const deletedCount: number = deleteObject.deletedCount;
+            console.log(deletedCount);
+            if (deletedCount > 0)
+                await this.updateDuAndCuSize(path, duDifference, cuDifference);
+        } catch (error) {
+            console.log(
+                'DirectoriesRepository.deleteDirectoryAndChildren - Failed to updateMany',
+                path,
+                error
+            );
+        }
     };
 
     /*
@@ -159,21 +229,36 @@ class DirectoriesRepository {
         path: string
     ) => {
         await this.insertNewDirectoryList(directories);
-        const topLevelCreateDirectory: Directory = directories.find(
+        const directoryToCreate: Directory = directories.find(
             (directory) => !directory.parentId
         );
 
-        const pathOneLevelUp: string = dirname(path);
-        const directoryAtPath: Directory =
-            await this.collection.findOneAndUpdate(
-                { path: pathOneLevelUp },
-                { $push: { children: topLevelCreateDirectory.path } }
+        if (!directoryToCreate) {
+            console.log(
+                'All directories have a parent? Error in transforming the tree'
             );
+            return;
+        }
 
+        const pathOneLevelUp: string = dirname(path);
+        let directoryAtPath: Directory;
+        try {
+            directoryAtPath = await this.collection.findOneAndUpdate(
+                { path: pathOneLevelUp },
+                { $push: { children: directoryToCreate.path } }
+            );
+        } catch (error) {
+            console.log(
+                'DirectoriesRepository.createDirectoriesAndUpdateSizes - Failed at 1st findOneAndUpdate',
+                path,
+                directoryToCreate,
+                error
+            );
+        }
         await this.updateDuAndCuSize(
             pathOneLevelUp,
-            topLevelCreateDirectory.du,
-            topLevelCreateDirectory.cu_size
+            directoryToCreate.du,
+            directoryToCreate.cu_size
         );
         if (!directoryAtPath) {
             console.log(
@@ -182,10 +267,19 @@ class DirectoriesRepository {
             );
             return;
         }
-        await this.collection.findOneAndUpdate(
-            { _id: topLevelCreateDirectory._id },
-            { $set: { parentId: directoryAtPath._id } }
-        );
+        try {
+            await this.collection.findOneAndUpdate(
+                { _id: directoryToCreate._id },
+                { $set: { parentId: directoryAtPath._id } }
+            );
+        } catch (error) {
+            console.log(
+                'DirectoriesRepository.createDirectoriesAndUpdateSizes - Failed at second findOneAndUpdate',
+                path,
+                directoryToCreate,
+                error
+            );
+        }
     };
 }
 
