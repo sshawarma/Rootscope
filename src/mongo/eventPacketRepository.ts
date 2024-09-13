@@ -10,7 +10,6 @@ class EventPacketRepository {
 
     private constructor() {
         try {
-
             const mongoDb: MongoDB = MongoDB.getInstance();
 
             this.db = mongoDb.db;
@@ -31,11 +30,27 @@ class EventPacketRepository {
     }
 
     public insertEventPacket = async (eventPacket: EventPacket) => {
-        await this.collection.insertOne(eventPacket);
+        try {
+            await this.collection.insertOne(eventPacket);
+        } catch (error) {
+            console.log(
+                'EventPacketRepository.insertEventPacket - Failed to insertOne',
+                eventPacket,
+                error
+            );
+        }
     };
 
     public queryEventPackets = async (message_id: string) => {
-        return this.collection.find({ message_id }).toArray(); // is there a better way to do this instead of checking arr length
+        try {
+            return this.collection.find({ message_id }).toArray();
+        } catch (error) {
+            console.log(
+                'EventPacketRepository.queryEventPackets - Failed to find',
+                message_id,
+                error
+            );
+        }
     };
 }
 

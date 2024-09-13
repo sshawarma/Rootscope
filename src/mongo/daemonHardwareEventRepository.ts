@@ -29,7 +29,15 @@ class DaemonHardwareEventRepository {
     }
 
     public insertHardwareEvent = async (event: DaemonHardwareEvent) => {
-        await this.collection.insertOne(event);
+        try {
+            await this.collection.insertOne(event);
+        } catch (error) {
+            console.log(
+                'DaemonHardwareEventRepository.insertHardwareEvent - Failed to insertOne',
+                event,
+                error
+            );
+        }
     };
 }
 

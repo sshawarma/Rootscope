@@ -31,7 +31,15 @@ class DaemonFileSystemChangeEventRepository {
     public insertFileSystemChangeEvent = async (
         event: DaemonFileSystemChangeEvent
     ) => {
-        await this.collection.insertOne(event);
+        try {
+            await this.collection.insertOne(event);
+        } catch (error) {
+            console.log(
+                'DaemonFileSystemChangeEventRepository.insertFileSystemChangeEvent - Failed to insertOne',
+                event,
+                error
+            );
+        }
     };
 }
 
