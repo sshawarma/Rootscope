@@ -1,19 +1,11 @@
 import mqtt, { MqttClient } from 'mqtt';
+import MsgPack from './msgpack';
 
 class MQTTClientProvider {
     private static _instance: MQTTClientProvider;
     private static client: MqttClient;
 
     private constructor() {}
-
-    static getInstance() {
-        if (this._instance) {
-            return this._instance;
-        }
-
-        this._instance = new MQTTClientProvider();
-        return this._instance;
-    }
 
     static getClient = (): MqttClient => {
         if (this.client) return this.client;

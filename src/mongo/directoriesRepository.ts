@@ -1,11 +1,4 @@
-import {
-    Collection,
-    Db,
-    DeleteResult,
-    InsertOneResult,
-    MongoClient
-} from 'mongodb';
-import { DaemonHardwareEvent } from '../providers/types/hardwareEvent';
+import { Collection, Db, DeleteResult, InsertOneResult } from 'mongodb';
 import { Attrib, Directory } from './types/schema';
 import { FileData } from '../providers/types/fullScanEvent';
 import { dirname } from 'path';
@@ -187,7 +180,7 @@ class DirectoriesRepository {
                 console.log(
                     'DirectoriesRepository.deleteDirectoryAndChildren - Directory to delete not found'
                 );
-                // publish to mqtt
+
                 return;
             }
         } catch (error) {
@@ -228,7 +221,6 @@ class DirectoriesRepository {
         directories: Directory[],
         path: string
     ) => {
-        await this.insertNewDirectoryList(directories);
         const directoryToCreate: Directory = directories.find(
             (directory) => !directory.parentId
         );
@@ -254,19 +246,24 @@ class DirectoriesRepository {
                 directoryToCreate,
                 error
             );
+            return;
         }
+
+        if (!directoryAtPath) {
+            console.log(
+                `During file system create no directory was found at: ${path}.`
+            );
+
+            return;
+        }
+
+        await this.insertNewDirectoryList(directories);
+
         await this.updateDuAndCuSize(
             pathOneLevelUp,
             directoryToCreate.du,
             directoryToCreate.cu_size
         );
-        if (!directoryAtPath) {
-            console.log(
-                'During file system create no directory was found at: ',
-                path
-            );
-            return;
-        }
         try {
             await this.collection.findOneAndUpdate(
                 { _id: directoryToCreate._id },
