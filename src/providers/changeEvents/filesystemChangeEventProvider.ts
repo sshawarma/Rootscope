@@ -155,7 +155,6 @@ class FileSystemChangeEventProvider {
         daemonEvent.events.forEach(async (event) => {
             const actions: Action[] = this.decodeAction(event.actions);
             actions.forEach(async (action) => {
-                console.log(action)
                 await this.actionHandler[action](event);
             });
         });

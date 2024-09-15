@@ -30,7 +30,15 @@ class DaemonStatusEventRepository {
     }
 
     public insertDaemonStatusEvent = async (event: DaemonStatusEvent) => {
-        await this.collection.insertOne(event);
+        try {
+            await this.collection.insertOne(event);
+        } catch (error) {
+            console.log(
+                'DaemonStatusEventRepository.insertDaemonStatusEvent - Failed to insertOne',
+                event,
+                error
+            );
+        }
     };
 }
 

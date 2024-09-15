@@ -16,11 +16,11 @@ class MsgPack {
         return this._instance;
     }
 
-    public packMessage = (valueToPack: any): Buffer => {
+    public static packMessage = (valueToPack: any): Buffer => {
         return pack(valueToPack);
     };
 
-    public unpackMessage = (valueToUnpack: Buffer): EventData => {
+    public static unpackMessage = (valueToUnpack: Buffer): EventData => {
         try {
             return unpack(valueToUnpack).event_data;
         } catch (error) {
@@ -28,7 +28,7 @@ class MsgPack {
         }
     };
 
-    public orderAndUnpackEventPackets = (
+    public static orderAndUnpackEventPackets = (
         eventPackets: EventPacket[]
     ): EventData => {
         const packedData: string = eventPackets

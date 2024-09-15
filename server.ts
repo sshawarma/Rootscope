@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-const mqttClient: MqttClient = MQTTClientProvider.getClient()
+const mqttClient: MqttClient = MQTTClientProvider.getClient();
 
 mqttClient.on('connect', function () {
     mqttClient.subscribe('rootscope-daemon2');
@@ -22,7 +22,7 @@ mqttClient.on('connect', function () {
 mqttClient.on('message', function (topic, message) {
     const packetHandler: EventPacketHandler = EventPacketHandler.getInstance();
     const mqttMessage: EventPacket = JSON.parse(message.toString());
-    packetHandler.process(mqttMessage)
+    packetHandler.process(mqttMessage);
 });
 
 app.listen(port, () => {

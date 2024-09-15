@@ -8,7 +8,7 @@ export interface FileData {
     date_created: number;
     du: number;
     cu_size: number;
-    link: string | null;
+    link: Link | null;
     device: string | null;
     mounted: string | null;
     is_socket: number;
@@ -17,6 +17,12 @@ export interface FileData {
     parentId?: ObjectId;
     date_modified?: number;
     update_children?:boolean
+}
+
+export interface Link {
+    state:string;
+    path: string;
+    target:string;
 }
 
 export interface Attrib {
