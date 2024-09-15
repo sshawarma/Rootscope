@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import { Link } from '../../providers/types/fullScanEvent';
 
 export interface Attrib {
     perm: number;
@@ -21,7 +22,7 @@ export interface Directory {
     date_created: number;
     du: number;
     cu_size: number;
-    link: string | null;
+    link: Link | null;
     device: string | null;
     mounted: string | null;
     is_socket: number;

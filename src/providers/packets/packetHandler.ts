@@ -8,13 +8,10 @@ class EventPacketHandler {
 
     private eventPacketRepository: EventPacketRepository;
 
-    private msgPack: MsgPack;
-
     private eventHandler: EventHandler;
 
     private constructor() {
         this.eventPacketRepository = EventPacketRepository.getInstance();
-        this.msgPack = MsgPack.getInstance();
         this.eventHandler = EventHandler.getInstance();
     }
 
@@ -35,7 +32,7 @@ class EventPacketHandler {
             );
         if (packets.length == eventPacket.total_packets) {
             const unpackedEventData: EventData =
-                this.msgPack.orderAndUnpackEventPackets(packets);
+                MsgPack.orderAndUnpackEventPackets(packets);
             const daemonEvent: DaemonEvent = {
                 event_type: eventPacket.event_type,
                 event_data: unpackedEventData
