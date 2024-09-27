@@ -4,6 +4,7 @@ import {
 } from '../types/fileSystemChangeEvent';
 import { DaemonFullScanEvent } from './fullScanEvent';
 import { DaemonHardwareEvent } from './hardwareEvent';
+import { IncrementalScanEvent } from './incrementalScanEvent';
 
 export interface DaemonEvent {
     event_type: EventType;
@@ -28,4 +29,5 @@ export type EventData =
     | DaemonFullScanEvent
     | DaemonHardwareEvent
     | DaemonFileSystemChangeEvent
-    | DaemonStatusEvent;
+    | DaemonStatusEvent
+    | IncrementalScanEvent;

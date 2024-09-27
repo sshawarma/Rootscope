@@ -5,12 +5,14 @@ import MongoDB from '../mongo/mongo';
 import {
     isDaemonFileSystemChangeEvent,
     isDaemonFullScanEvent,
-    isDaemonStatusEvent
+    isDaemonStatusEvent,
+    isIncrementalScanEvent
 } from './types/typeGuards';
 import HardwareEventProvider from './hardwareEventProvider';
 import FileSystemChangeEventProvider from './changeEvents/filesystemChangeEventProvider';
 import { EventType } from './types/fileSystemChangeEvent';
 import DaemonStatusEventProvider from './daemonStatusEventProvider';
+import IncrementalScanEventProvider from './incrementalScanEventProvider';
 
 class EventHandler {
     private static _instance: EventHandler;
@@ -23,18 +25,13 @@ class EventHandler {
 
     private daemonStatusEventProvider: DaemonStatusEventProvider;
 
+    private incrementalScanEventProvider: IncrementalScanEventProvider;
+
     private constructor() {
         this.fullScanEventProvider = FullScanEventProvider.getInstance();
         this.hardwareEventProvider = HardwareEventProvider.getInstance();
         this.fileSystemChangeEventProvider =
             FileSystemChangeEventProvider.getInstance();
-    }
-
-    public getEventProcessor(eventType: EventType): (event: any) => void {
-        return (
-            this.eventProcessors[eventType] ||
-            this.eventProcessors[EventType.Unknown]
-        );
     }
 
     private processUnknownEvent(event: DaemonEvent) {
@@ -89,6 +86,14 @@ class EventHandler {
         }
     };
 
+    private processIncrementalScanEvent = (event: DaemonEvent) => {
+        console.log('Processing incremental scan event');
+        const daemonEventData = event.event_data;
+        if (isIncrementalScanEvent(daemonEventData)) {
+            this.incrementalScanEventProvider.process(daemonEventData);
+        }
+    };
+
     private eventProcessors: Record<EventType, (event: DaemonEvent) => void> = {
         [EventType.Unknown]: this.processUnknownEvent.bind(this),
         [EventType.FullScan]: this.processFullScanEvent.bind(this),
@@ -96,7 +101,8 @@ class EventHandler {
             this.processFilesystemChangeEvent.bind(this),
         [EventType.NetworkChange]: this.processNetworkChangeEvent.bind(this),
         [EventType.HardwareChange]: this.processHardwareChangeEvent.bind(this),
-        [EventType.DaemonStatus]: this.processDaemonStatusEvent.bind(this)
+        [EventType.DaemonStatus]: this.processDaemonStatusEvent.bind(this),
+        [EventType.IncrementalScan]: this.processIncrementalScanEvent.bind(this)
     };
 
     static getInstance() {

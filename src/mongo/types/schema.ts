@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { Link } from '../../providers/types/fullScanEvent';
+import { Link, MountData } from '../../providers/types/fullScanEvent';
 
 export interface Attrib {
     perm: number;
@@ -15,7 +15,6 @@ export interface Attrib {
 
 export interface Directory {
     parentId?: ObjectId;
-    update_children?: Boolean;
     path: string;
     status: string;
     type: string;
@@ -25,12 +24,37 @@ export interface Directory {
     cu_size: number;
     link: Link | null;
     device: string | null;
-    mounted: string | null;
+    mounted: MountData | null;
     is_socket: number;
     is_fifo: number;
     _id?: ObjectId;
     createdAt: Date;
     updatedAt: Date;
-    modifiedAt?: Date;
-    children: string[];
+    modifiedAt?: number;
+    fileChildren: string[];
+    directoryChildren: string[];
+}
+
+export interface FileData {
+    path: string;
+    status: string;
+    type: string;
+    attrib: Attrib;
+    date_created: number;
+    du: number;
+    cu_size: number;
+    link: Link | null;
+    device: string | null;
+    mounted: MountData | null;
+    is_socket: number;
+    is_fifo: number;
+    _id?: ObjectId;
+    parentId?: ObjectId;
+    date_modified?: number;
+    update_children?: boolean;
+}
+
+export interface DaemonFullScanEvent {
+    data: FileData;
+    children: DaemonFullScanEvent[];
 }

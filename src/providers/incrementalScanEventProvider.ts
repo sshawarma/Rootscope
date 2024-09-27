@@ -1,8 +1,15 @@
-import { UpdateFilter } from 'mongodb';
-import { transformTree } from '../lib/transformTree';
-import DirectoriesRepository from '../mongo/directoriesRepository';
+import { mapFileDataToDirectories, transformTree } from '../lib/transformTree';
+import DirectoriesRepository, {
+    UpdateDirectoryForIncrementalScanResult
+} from '../mongo/directoriesRepository';
 import { Directory } from '../mongo/types/schema';
-import { DaemonFullScanEvent } from './types/fullScanEvent';
+import {
+    DaemonFullScanEvent,
+    FileData,
+    FileDataType,
+    Status
+} from './types/fullScanEvent';
+import { IncrementalScanEvent } from './types/incrementalScanEvent';
 
 class IncrementalScanEventProvider {
     private static _instance: IncrementalScanEventProvider;
@@ -21,54 +28,98 @@ class IncrementalScanEventProvider {
         this._instance = new IncrementalScanEventProvider();
         return this._instance;
     }
+
     /*
-Transform our incrementalEvent with transformTree to get our Directory[]
-Map through Directory[] to return updateOne[]
-in the mongoUpdate ensure that the children is only updated if updateChildren is true
-write to mongo using bulkWrite with the list of updateOne
-This way we will keep the record in the DB without deleting anything but just update its values and children if need be
-
-So in this approach we will NOT end up removing any children which where found to be deleted from the incScan
-the ids inside of children will also not correspond to that of what are in mongo
-we will need a new transformTree function for incremental scan
-*/
-    public process = (event: DaemonFullScanEvent): void => {
-        const directories: Directory[] = transformTree(event);
-        directories.map((directory) => {
-            const updatedDirectory: Directory = {
-                ...directory,
-                children: directory.update_children ? directory.children : []
-            };
-
-            const x: UpdateFilter<Directory> = {
-                updateOne: {
-                    filter: {
-                        path: directory.path
-                    },
-                    update: {
-                        $set: {
-                            parentId: directory.parentId,
-                            // update_children: directory.update_children,
-                            // status: string,
-                            // type: string,
-                            // attrib: Attrib,
-                            // date_created: number,
-                            // du: number,
-                            // cu_size: number,
-                            // link: string | null,
-                            // device: string | null,
-                            // mounted: string | null,
-                            // is_socket: number,
-                            // is_fifo: number,
-                            // updatedAt: Date,
-                            // modifiedAt?: Date,
-                            // children: directory.update_children
-                        }
-                    },
-                    upsert: true
-                }
-            };
+    First deletes the event from its parent's directoryChildren.
+    Uses that to finalize the paths to delete by appending the event's children with its respective database entry's fileChildren
+    */
+    private processDeleted = async (event: DaemonFullScanEvent) => {
+        const directoriesToDelete: string[] = [event.data.path];
+        event.children.forEach((child) => {
+            if (child.data.type == FileDataType.FILE) {
+                directoriesToDelete.push(child.data.path);
+            }
         });
+
+        const fileDataDirectoryToDelete: Directory =
+            await this.directoriesRepository.removeDirectoryInParentChildren(
+                event.data.path
+            );
+
+        if (fileDataDirectoryToDelete) {
+            directoriesToDelete.push(...fileDataDirectoryToDelete.fileChildren);
+        }
+
+        console.log(
+            `IncrementalScanProvider - Deleting directories at paths: ${directoriesToDelete}`
+        );
+
+        await this.directoriesRepository.deleteDirectoriesAtPaths(
+            directoriesToDelete
+        );
+    };
+
+    /*
+    Upserts the event in the DB. Then replaces/creates its fileChildren on update/insert. Then creates its new children directories
+    */
+    private processUpdated = async (event: DaemonFullScanEvent) => {
+        const fileChildren: FileData[] = [];
+        const directoryChildren: DaemonFullScanEvent[] = [];
+        event.children.forEach((child) => {
+            if (child.data.type == FileDataType.FILE) {
+                fileChildren.push(child.data);
+            } else if (child.data.type == FileDataType.DIRECTORY) {
+                directoryChildren.push(child);
+            }
+        });
+
+        const result: UpdateDirectoryForIncrementalScanResult =
+            await this.directoriesRepository.updateDirectoryForIncrementalScan(
+                fileChildren,
+                directoryChildren,
+                event.data
+            );
+
+        if (result.parentDirectoryInDb) {
+            await this.directoriesRepository.replaceFileChildren(
+                fileChildren,
+                result.parentDirectoryInDb
+            );
+        } else {
+            const fileChildrenToDirectory: Directory[] =
+                mapFileDataToDirectories(
+                    fileChildren,
+                    result.parentDirectoryId
+                );
+
+            await this.directoriesRepository.insertNewDirectoryList(
+                fileChildrenToDirectory
+            );
+        }
+
+        const directoryChildrenToDirectory: Directory[] = directoryChildren
+            .flatMap((directory) => transformTree(directory))
+            .map((child) => {
+                return {
+                    ...child,
+                    parentId: child.parentId ?? result.parentDirectoryId
+                };
+            });
+
+        await this.directoriesRepository.insertNewDirectoryList(
+            directoryChildrenToDirectory
+        );
+    };
+
+    public process = async (incrementalScanEvent: IncrementalScanEvent) => {
+        const events: DaemonFullScanEvent[] = incrementalScanEvent.events;
+        for (const event of events) {
+            if (event.data.status === Status.UPDATED) {
+                await this.processUpdated(event);
+            } else if (event.data.status === Status.DELETED) {
+                await this.processDeleted(event);
+            }
+        }
     };
 }
 

@@ -6,7 +6,8 @@ export enum EventType {
     FilesystemChange = 2,
     NetworkChange = 3,
     HardwareChange = 4,
-    DaemonStatus = 5
+    DaemonStatus = 5,
+    IncrementalScan = 6
 }
 
 export interface ProcessId {
