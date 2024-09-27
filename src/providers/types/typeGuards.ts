@@ -2,6 +2,7 @@ import { DaemonStatusEvent } from './daemonEvent';
 import { DaemonFileSystemChangeEvent } from './fileSystemChangeEvent';
 import { DaemonFullScanEvent } from './fullScanEvent';
 import { DaemonHardwareEvent } from './hardwareEvent';
+import { IncrementalScanEvent } from './incrementalScanEvent';
 
 export const isDaemonFullScanEvent = (obj: any): obj is DaemonFullScanEvent => {
     return obj?.data?.status && obj?.children;
@@ -19,4 +20,10 @@ export const isDaemonFileSystemChangeEvent = (
 
 export const isDaemonStatusEvent = (obj: any): obj is DaemonStatusEvent => {
     return obj?.status && obj?.reason;
+};
+
+export const isIncrementalScanEvent = (
+    obj: any
+): obj is IncrementalScanEvent => {
+    return obj?.events;
 };

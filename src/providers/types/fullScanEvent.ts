@@ -10,17 +10,39 @@ export interface FileData {
     cu_size: number;
     link: Link | null;
     device: string | null;
-    mounted: string | null;
+    mounted: MountData | null;
     is_socket: number;
     is_fifo: number;
     _id?: ObjectId;
     parentId?: ObjectId;
+    date_modified?: number;
+    update_children?: boolean;
+}
+
+export enum FileDataType {
+    DIRECTORY = 'directory',
+    FILE = 'file'
+}
+
+export enum Status {
+    UPDATED = 'updated',
+    DELETED = 'deleted',
+    SUCCESS = 'success'
+}
+
+export interface MountData {
+    mount_point: string;
+    mount_origin: string;
+    mount_type: string;
+    mnt_opt: number;
+    mnt_freq: number;
+    mnt_passno: number;
 }
 
 export interface Link {
-    state:string;
+    state: string;
     path: string;
-    target:string;
+    target: string;
 }
 
 export interface Attrib {

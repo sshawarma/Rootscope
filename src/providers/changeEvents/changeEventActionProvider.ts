@@ -31,7 +31,8 @@ class ChangeEventActionProvider {
         const updateResult: Boolean =
             await this.directoriesRepository.updateAttributes(
                 event.location,
-                event.new_data.data.attrib
+                event.new_data.data.attrib,
+                event.new_data.data.date_modified
             );
         if (!updateResult) {
             console.log(
@@ -53,7 +54,10 @@ class ChangeEventActionProvider {
     public handleCloseWrite = async (
         event: FileSystemChangeEvent
     ): Promise<void> => {
-        await this.directoriesRepository.updateModifiedAt(event.location);
+        await this.directoriesRepository.updateModifiedAt(
+            event.location,
+            event.new_data.data.date_modified
+        );
     };
 
     public handleDelete = async (
