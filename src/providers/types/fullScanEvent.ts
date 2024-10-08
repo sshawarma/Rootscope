@@ -58,6 +58,7 @@ export interface Attrib {
 }
 
 export interface DaemonFullScanEvent {
+    event_id?: number;
     data: FileData;
     children: DaemonFullScanEvent[];
 }

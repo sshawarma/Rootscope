@@ -20,6 +20,7 @@ export interface EventPacket {
 }
 
 export interface DaemonStatusEvent {
+    event_id?: number;
     created_at: number;
     status: string;
     reason: string;

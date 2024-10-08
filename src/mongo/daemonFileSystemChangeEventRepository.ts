@@ -1,6 +1,7 @@
-import { Collection, Db, MongoClient } from 'mongodb';
-import { DaemonFileSystemChangeEvent } from '../providers/types/fileSystemChangeEvent';
+import { Collection, Db } from 'mongodb';
+
 import MongoDB from './mongo';
+import { DaemonFileSystemChangeEvent } from './types/schema';
 
 class DaemonFileSystemChangeEventRepository {
     private static _instance: DaemonFileSystemChangeEventRepository;
