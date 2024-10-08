@@ -1,7 +1,7 @@
-import { Collection, Db, MongoClient } from 'mongodb';
-import { DaemonFileSystemChangeEvent } from '../providers/types/fileSystemChangeEvent';
-import { EventPacket } from '../providers/types/daemonEvent';
+import { Collection, Db } from 'mongodb';
+
 import MongoDB from './mongo';
+import { EventPacket } from '../providers/types/daemonEvent';
 
 class EventPacketRepository {
     private static _instance: EventPacketRepository;

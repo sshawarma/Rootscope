@@ -1,7 +1,7 @@
-import { Collection, Db, DeleteResult, MongoClient } from 'mongodb';
+import { Collection, Db } from 'mongodb';
 
-import { DaemonStatusEvent } from '../providers/types/daemonEvent';
 import MongoDB from './mongo';
+import { DaemonStatusEvent } from './types/schema';
 
 class DaemonStatusEventRepository {
     private static _instance: DaemonStatusEventRepository;
