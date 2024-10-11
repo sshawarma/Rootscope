@@ -38,7 +38,7 @@ class EventPacketHandler {
                 event_data: unpackedEventData
             };
 
-            this.eventHandler.process(daemonEvent);
+            await this.eventHandler.process(daemonEvent);
         }
     };
 }

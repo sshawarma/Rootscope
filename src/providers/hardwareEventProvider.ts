@@ -20,8 +20,8 @@ class HardwareEventProvider {
         return this._instance;
     }
 
-    public process = (event: DaemonHardwareEvent): void => {
-        this.daemonHardwareEventRepository.insertHardwareEvent(event);
+    public process = async (event: DaemonHardwareEvent): Promise<void> => {
+        await this.daemonHardwareEventRepository.insertHardwareEvent(event);
     };
 }
 

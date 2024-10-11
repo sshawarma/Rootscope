@@ -20,8 +20,8 @@ class DaemonStatusEventProvider {
         return this._instance;
     }
 
-    public process = (event: DaemonStatusEvent): void => {
-        this.daemonStatusEventRepository.insertDaemonStatusEvent(event);
+    public process = async (event: DaemonStatusEvent): Promise<void> => {
+        await this.daemonStatusEventRepository.insertDaemonStatusEvent(event);
     };
 }
 
