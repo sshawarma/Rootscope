@@ -51,6 +51,18 @@ class EventHistoryRepository {
             );
         }
     };
+
+    public findEventBefore = async (eventId: number) => {
+        try {
+            return this.collection.findOne({ event_id: eventId });
+        } catch (error) {
+            console.log(
+                'DaemonStatusEventRepository.findEventBefore - Failed to findOne',
+                eventId,
+                error
+            );
+        }
+    };
 }
 
 export default EventHistoryRepository;
