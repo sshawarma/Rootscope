@@ -1,5 +1,13 @@
-import { DaemonEvent } from './types/daemonEvent';
+import MQTTClientProvider from '../lib/mqttClientProvider';
+import FileSystemChangeEventProvider from './changeEvents/filesystemChangeEventProvider';
+import DaemonStatusEventProvider from './daemonStatusEventProvider';
+import EventHistoryProvider from './eventHistoryProvider';
 import FullScanEventProvider from './fullScanEventProvider';
+import HardwareEventProvider from './hardwareEventProvider';
+import IncrementalScanEventProvider from './incrementalScanEventProvider';
+import { DaemonEvent } from './types/daemonEvent';
+import { ErrorMessage, ErrorType } from './types/errors';
+import { EventType } from './types/fileSystemChangeEvent';
 import {
     isDaemonFileSystemChangeEvent,
     isDaemonFullScanEvent,
@@ -7,12 +15,6 @@ import {
     isDaemonStatusEvent,
     isIncrementalScanEvent
 } from './types/typeGuards';
-import HardwareEventProvider from './hardwareEventProvider';
-import FileSystemChangeEventProvider from './changeEvents/filesystemChangeEventProvider';
-import { EventType } from './types/fileSystemChangeEvent';
-import DaemonStatusEventProvider from './daemonStatusEventProvider';
-import IncrementalScanEventProvider from './incrementalScanEventProvider';
-import EventHistoryProvider from './eventHistoryProvider';
 
 class EventHandler {
     private static _instance: EventHandler;
@@ -47,12 +49,21 @@ class EventHandler {
         return this._instance;
     }
 
-    private checkForPreviousEvent = async (eventId: number) => {
+    private checkForPreviousEvent = async (
+        eventId: number,
+        eventType: EventType
+    ) => {
         const isEventBefore: Boolean =
             await this.eventHistoryProvider.isEventBefore(eventId);
 
         if (!isEventBefore) {
-            //TODO PUBLISH TO DAEMON OF OUT OF ORDER ERROR
+            const messageToPublish: ErrorMessage = {
+                errorType: ErrorType.OUT_OF_ORDER,
+                eventType: eventType,
+                timeOfError: new Date(),
+                data: { eventId }
+            };
+            MQTTClientProvider.publishToTopic(JSON.stringify(messageToPublish));
             return false;
         }
         return true;
@@ -67,9 +78,12 @@ class EventHandler {
         const daemonEventData = event.event_data;
         if (isDaemonFullScanEvent(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
-                daemonEventData.event_id
+                daemonEventData.event_id,
+                EventType.FullScan
             );
-            if (!isPreviousEvent) return;
+            if (!isPreviousEvent) {
+                return;
+            }
             await this.fullScanEventProvider.process(daemonEventData);
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,
@@ -92,7 +106,8 @@ class EventHandler {
         const daemonEventData = event.event_data;
         if (isDaemonFileSystemChangeEvent(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
-                daemonEventData[0].event_id
+                daemonEventData[0].event_id,
+                EventType.FilesystemChange
             );
             if (!isPreviousEvent) return;
             await this.fileSystemChangeEventProvider.process(daemonEventData);
@@ -119,7 +134,8 @@ class EventHandler {
         const daemonEventData = event.event_data;
         if (isDaemonHardwareEvent(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
-                daemonEventData.event_id
+                daemonEventData.event_id,
+                EventType.HardwareChange
             );
             if (!isPreviousEvent) return;
             await this.hardwareEventProvider.process(daemonEventData);
@@ -140,7 +156,8 @@ class EventHandler {
         const daemonEventData = event.event_data;
         if (isDaemonStatusEvent(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
-                daemonEventData.event_id
+                daemonEventData.event_id,
+                EventType.DaemonStatus
             );
             if (!isPreviousEvent) return;
             await this.daemonStatusEventProvider.process(daemonEventData);
@@ -161,7 +178,8 @@ class EventHandler {
         const daemonEventData = event.event_data;
         if (isIncrementalScanEvent(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
-                daemonEventData.event_id
+                daemonEventData.event_id,
+                EventType.IncrementalScan
             );
             if (!isPreviousEvent) return;
             await this.incrementalScanEventProvider.process(daemonEventData);
