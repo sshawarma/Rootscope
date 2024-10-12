@@ -54,7 +54,8 @@ class EventHistoryRepository {
 
     public findEventBefore = async (eventId: number) => {
         try {
-            return this.collection.findOne({ event_id: eventId });
+            const decrementedEventId = eventId - 1;
+            return this.collection.findOne({ event_id: decrementedEventId });
         } catch (error) {
             console.log(
                 'DaemonStatusEventRepository.findEventBefore - Failed to findOne',

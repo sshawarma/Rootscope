@@ -1,10 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
 import { MqttClient } from 'mqtt';
-import 'dotenv/config';
 
-import { EventPacket } from './src/providers/types/daemonEvent';
-import EventPacketHandler from './src/providers/packets/packetHandler';
 import MQTTClientProvider from './src/lib/mqttClientProvider';
+import EventPacketHandler from './src/providers/packets/packetHandler';
+import { EventPacket } from './src/providers/types/daemonEvent';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
 const mqttClient: MqttClient = MQTTClientProvider.getClient();
 
 mqttClient.on('connect', function () {
-    mqttClient.subscribe('rootscope-daemon2');
+    mqttClient.subscribe({ 'rootscope-daemon2': { qos: 2 } });
 });
 
 mqttClient.on('message', function (topic, message) {
