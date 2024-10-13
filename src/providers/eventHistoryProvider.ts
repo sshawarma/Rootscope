@@ -1,5 +1,5 @@
 import EventHistoryRepository from '../mongo/eventHistoryRepository';
-import { EventHistory } from './types/eventHistory';
+import { EventHistory, EventHistoryData } from './types/eventHistory';
 import {
     EventType,
     FileSystemChangeEvent
@@ -26,13 +26,15 @@ class EventHistoryProvider {
     public recordEvent = async (
         eventId: number,
         eventType: EventType,
-        timeOfEvent: Date
+        timeOfEvent: Date,
+        data: EventHistoryData
     ) => {
         const eventToRecord: EventHistory = {
             eventId,
             eventType,
             processedAt: new Date(),
-            timeOfEvent: timeOfEvent
+            timeOfEvent: timeOfEvent,
+            data
         };
 
         await this.eventHistoryRepository.insertEventHistory(eventToRecord);
@@ -43,12 +45,18 @@ class EventHistoryProvider {
     ) => {
         const now: Date = new Date();
         const eventsToRecord: EventHistory[] = fileSystemChangeEvents.map(
-            (fsChangeEvent) => ({
-                eventId: fsChangeEvent.event_id,
-                processedAt: now,
-                eventType: EventType.FilesystemChange,
-                timeOfEvent: new Date(fsChangeEvent.created_at)
-            })
+            (fsChangeEvent) => {
+                const data: EventHistoryData = {
+                    responsibleProcess: fsChangeEvent.responsible_process
+                };
+                return {
+                    eventId: fsChangeEvent.event_id,
+                    processedAt: now,
+                    eventType: EventType.FilesystemChange,
+                    timeOfEvent: new Date(fsChangeEvent.created_at),
+                    data
+                };
+            }
         );
 
         await this.eventHistoryRepository.insertEventHistories(eventsToRecord);

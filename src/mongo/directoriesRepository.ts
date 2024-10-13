@@ -2,19 +2,20 @@ import {
     Collection,
     Db,
     DeleteResult,
-    InsertOneResult,
     Document,
+    InsertOneResult,
     ObjectId
 } from 'mongodb';
+
+import { dirname } from 'path';
+import { mapFileDataToDirectories } from '../lib/transformTree';
 import {
     Attrib,
     DaemonFullScanEvent,
-    Directory,
     FileData
-} from './types/schema';
-import { dirname } from 'path';
+} from '../providers/types/fullScanEvent';
 import MongoDB from './mongo';
-import { mapFileDataToDirectories } from '../lib/transformTree';
+import { Directory } from './types/schema';
 
 const COLLECTION: string = 'directories';
 

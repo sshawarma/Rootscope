@@ -88,7 +88,8 @@ class EventHandler {
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,
                 EventType.FullScan,
-                new Date(daemonEventData.data.date_created)
+                new Date(daemonEventData.data.date_created),
+                {}
             );
         } else {
             console.log(
@@ -142,7 +143,8 @@ class EventHandler {
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,
                 EventType.FullScan,
-                new Date(daemonEventData.created_at)
+                new Date(daemonEventData.created_at),
+                { device: daemonEventData.device }
             );
         } else {
             console.log(
@@ -164,7 +166,11 @@ class EventHandler {
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,
                 EventType.DaemonStatus,
-                new Date(daemonEventData.created_at)
+                new Date(daemonEventData.created_at),
+                {
+                    status: daemonEventData.status,
+                    reason: daemonEventData.reason
+                }
             );
         } else {
             console.log(
@@ -186,7 +192,8 @@ class EventHandler {
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,
                 EventType.FullScan,
-                new Date(daemonEventData.created_at)
+                new Date(daemonEventData.created_at),
+                {}
             );
         } else {
             console.log(
