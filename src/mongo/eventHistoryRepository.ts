@@ -1,6 +1,6 @@
 import { Collection, Db } from 'mongodb';
 import MongoDB from './mongo';
-import { EventHistory } from './types/schema';
+import { EventHistory } from '../providers/types/eventHistory';
 
 class EventHistoryRepository {
     private static _instance: EventHistoryRepository;

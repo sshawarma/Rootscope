@@ -18,12 +18,18 @@ export interface ProcessId {
 }
 
 export interface ResponsibleProcess {
-    user_id: ProcessId;
-    group_id: ProcessId;
-    process_id: number;
-    parent_process_id: number;
-    process_name: string;
-    parent_process_name: string;
+    uid: ProcessId;
+    gid: ProcessId;
+    pid: number;
+    parents: ProcessParent[];
+    name: string;
+}
+
+export interface ProcessParent {
+    name: String;
+    pid: String;
+    uid: String;
+    gid: String;
 }
 
 export interface FileSystemChangeEvent {
@@ -32,6 +38,7 @@ export interface FileSystemChangeEvent {
     created_at: number;
     location: string;
     actions: number;
+    syscalls: string[];
     responsible_process: ResponsibleProcess;
 }
 

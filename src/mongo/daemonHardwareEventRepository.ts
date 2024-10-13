@@ -1,7 +1,7 @@
 import { Collection, Db } from 'mongodb';
 
+import { DaemonHardwareEvent } from '../providers/types/hardwareEvent';
 import MongoDB from './mongo';
-import { DaemonHardwareEvent } from './types/schema';
 
 class DaemonHardwareEventRepository {
     private static _instance: DaemonHardwareEventRepository;
