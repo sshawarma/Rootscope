@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { Attrib, Link, MountData } from '../../providers/types/fullScanEvent';
+import { EventPacket } from '../../providers/types/daemonEvent';
 
 export interface Directory {
     parentId?: ObjectId;
@@ -21,4 +22,8 @@ export interface Directory {
     modifiedAt?: number;
     fileChildren: string[];
     directoryChildren: string[];
+}
+
+export interface MongoEventPacket extends EventPacket {
+    createdAt: Date;
 }

@@ -1,13 +1,14 @@
 import { DaemonFullScanEvent } from './fullScanEvent';
 
 export enum EventType {
-    Unknown = 0,
-    FullScan = 1,
-    FilesystemChange = 2,
-    NetworkChange = 3,
-    HardwareChange = 4,
-    DaemonStatus = 5,
-    IncrementalScan = 6
+    UNKNOWN = 0,
+    FULL_SCAN = 1,
+    FILESYSTEM_CHANGE = 2,
+    NETWORK_CHANGE = 3,
+    HARDWARE_CHANGE = 4,
+    DAEMON_STATUS = 5,
+    INCREMENTAL_SCAN = 6,
+    VOLATILE_EVENT = 7
 }
 
 export interface ProcessId {
@@ -21,15 +22,17 @@ export interface ResponsibleProcess {
     uid: ProcessId;
     gid: ProcessId;
     pid: number;
+    executable_path: string;
     parents: ProcessParent[];
     name: string;
 }
 
 export interface ProcessParent {
-    name: String;
-    pid: String;
-    uid: String;
-    gid: String;
+    name: string;
+    pid: number;
+    uid: number;
+    gid: number;
+    executable_path: string;
 }
 
 export interface FileSystemChangeEvent {
@@ -46,3 +49,5 @@ export interface DaemonFileSystemChangeEvent {
     num_events: number;
     events: FileSystemChangeEvent[];
 }
+
+export interface VolatileEvent extends FileSystemChangeEvent {}

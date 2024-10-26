@@ -22,7 +22,7 @@ class MsgPack {
 
     public static unpackMessage = (valueToUnpack: Buffer): EventData => {
         try {
-            return unpack(valueToUnpack).event_data;
+            return unpack(valueToUnpack);
         } catch (error) {
             console.log('Could not unpack message', error);
         }

@@ -52,7 +52,7 @@ class EventHistoryProvider {
                 return {
                     eventId: fsChangeEvent.event_id,
                     processedAt: now,
-                    eventType: EventType.FilesystemChange,
+                    eventType: EventType.FILESYSTEM_CHANGE,
                     timeOfEvent: new Date(fsChangeEvent.created_at),
                     data
                 };
@@ -63,6 +63,7 @@ class EventHistoryProvider {
     };
 
     public isEventBefore = async (eventId: number): Promise<Boolean> => {
+        if (eventId === 0) return true;
         const eventHistory = await this.eventHistoryRepository.findEventBefore(
             eventId
         );
