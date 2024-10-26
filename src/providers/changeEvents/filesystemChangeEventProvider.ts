@@ -1,7 +1,8 @@
 import ChangeEventActionProvider from './changeEventActionProvider';
 import {
     DaemonFileSystemChangeEvent,
-    FileSystemChangeEvent
+    FileSystemChangeEvent,
+    VolatileEvent
 } from '../types/fileSystemChangeEvent';
 import DaemonFileSystemChangeEventRepository from '../../mongo/daemonFileSystemChangeEventRepository';
 
@@ -144,6 +145,10 @@ class FileSystemChangeEventProvider {
         [Action.Unknown]: () => {
             console.log('Unknown');
         }
+    };
+
+    public processVolatileEvent = async (daemonEvent: VolatileEvent) => {
+        await this.changeEventActionProvider.handleVolatileEvent(daemonEvent);
     };
 
     public process = async (

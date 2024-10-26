@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
 const mqttClient: MqttClient = MQTTClientProvider.getClient();
 
 mqttClient.on('connect', function () {
-    mqttClient.subscribe({ 'rootscope-daemon2': { qos: 2 } });
+    mqttClient.subscribe({ 'rootscope-daemon2': { qos: 1 } });
 });
 
 mqttClient.on('message', function (topic, message) {

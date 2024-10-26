@@ -1,5 +1,8 @@
 import { DaemonStatusEvent } from './daemonEvent';
-import { DaemonFileSystemChangeEvent } from './fileSystemChangeEvent';
+import {
+    DaemonFileSystemChangeEvent,
+    VolatileEvent
+} from './fileSystemChangeEvent';
 import { DaemonFullScanEvent } from './fullScanEvent';
 import { DaemonHardwareEvent } from './hardwareEvent';
 import { IncrementalScanEvent } from './incrementalScanEvent';
@@ -16,6 +19,10 @@ export const isDaemonFileSystemChangeEvent = (
     obj: any
 ): obj is DaemonFileSystemChangeEvent => {
     return obj?.events;
+};
+
+export const isVolatileEvent = (obj: any): obj is VolatileEvent => {
+    return obj.responsible_process;
 };
 
 export const isDaemonStatusEvent = (obj: any): obj is DaemonStatusEvent => {

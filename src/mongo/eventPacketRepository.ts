@@ -2,10 +2,11 @@ import { Collection, Db } from 'mongodb';
 
 import MongoDB from './mongo';
 import { EventPacket } from '../providers/types/daemonEvent';
+import { MongoEventPacket } from './types/schema';
 
 class EventPacketRepository {
     private static _instance: EventPacketRepository;
-    private collection: Collection<EventPacket>;
+    private collection: Collection<MongoEventPacket>;
     private db: Db;
 
     private constructor() {
@@ -31,7 +32,10 @@ class EventPacketRepository {
 
     public insertEventPacket = async (eventPacket: EventPacket) => {
         try {
-            await this.collection.insertOne(eventPacket);
+            await this.collection.insertOne({
+                ...eventPacket,
+                createdAt: new Date()
+            });
         } catch (error) {
             console.log(
                 'EventPacketRepository.insertEventPacket - Failed to insertOne',

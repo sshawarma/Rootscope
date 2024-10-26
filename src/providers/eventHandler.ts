@@ -13,7 +13,8 @@ import {
     isDaemonFullScanEvent,
     isDaemonHardwareEvent,
     isDaemonStatusEvent,
-    isIncrementalScanEvent
+    isIncrementalScanEvent,
+    isVolatileEvent
 } from './types/typeGuards';
 
 class EventHandler {
@@ -39,6 +40,8 @@ class EventHandler {
         this.incrementalScanEventProvider =
             IncrementalScanEventProvider.getInstance();
         this.eventHistoryProvider = EventHistoryProvider.getInstance();
+        this.daemonStatusEventProvider =
+            DaemonStatusEventProvider.getInstance();
     }
 
     static getInstance() {
@@ -79,7 +82,7 @@ class EventHandler {
         if (isDaemonFullScanEvent(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
                 daemonEventData.event_id,
-                EventType.FullScan
+                EventType.FULL_SCAN
             );
             if (!isPreviousEvent) {
                 return;
@@ -87,7 +90,7 @@ class EventHandler {
             await this.fullScanEventProvider.process(daemonEventData);
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,
-                EventType.FullScan,
+                EventType.FULL_SCAN,
                 new Date(daemonEventData.data.date_created),
                 {}
             );
@@ -99,17 +102,14 @@ class EventHandler {
     };
 
     private processFilesystemChangeEvent = async (event: DaemonEvent) => {
-        console.log(
-            `Processing filesystem change event with event: ${JSON.stringify(
-                event
-            )}`
-        );
+        console.log(`Processing filesystem change event`);
         const daemonEventData = event.event_data;
         if (isDaemonFileSystemChangeEvent(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
-                daemonEventData[0].event_id,
-                EventType.FilesystemChange
+                daemonEventData.events[0].event_id,
+                EventType.FILESYSTEM_CHANGE
             );
+
             if (!isPreviousEvent) return;
             await this.fileSystemChangeEventProvider.process(daemonEventData);
             await this.eventHistoryProvider.recordFileSystemEvents(
@@ -131,18 +131,18 @@ class EventHandler {
     };
 
     private processHardwareChangeEvent = async (event: DaemonEvent) => {
-        console.log(`Processing hardware change event with event`);
+        console.log(`Processing hardware change event`);
         const daemonEventData = event.event_data;
         if (isDaemonHardwareEvent(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
                 daemonEventData.event_id,
-                EventType.HardwareChange
+                EventType.HARDWARE_CHANGE
             );
             if (!isPreviousEvent) return;
             await this.hardwareEventProvider.process(daemonEventData);
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,
-                EventType.FullScan,
+                EventType.HARDWARE_CHANGE,
                 new Date(daemonEventData.created_at),
                 { device: daemonEventData.device }
             );
@@ -159,13 +159,13 @@ class EventHandler {
         if (isDaemonStatusEvent(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
                 daemonEventData.event_id,
-                EventType.DaemonStatus
+                EventType.DAEMON_STATUS
             );
             if (!isPreviousEvent) return;
             await this.daemonStatusEventProvider.process(daemonEventData);
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,
-                EventType.DaemonStatus,
+                EventType.DAEMON_STATUS,
                 new Date(daemonEventData.created_at),
                 {
                     status: daemonEventData.status,
@@ -185,13 +185,13 @@ class EventHandler {
         if (isIncrementalScanEvent(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
                 daemonEventData.event_id,
-                EventType.IncrementalScan
+                EventType.INCREMENTAL_SCAN
             );
             if (!isPreviousEvent) return;
             await this.incrementalScanEventProvider.process(daemonEventData);
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,
-                EventType.FullScan,
+                EventType.INCREMENTAL_SCAN,
                 new Date(daemonEventData.created_at),
                 {}
             );
@@ -202,24 +202,51 @@ class EventHandler {
         }
     };
 
+    private processVolatileEvent = async (event: DaemonEvent) => {
+        console.log(`Processing volatile event`);
+        const daemonEventData = event.event_data;
+        if (isVolatileEvent(daemonEventData)) {
+            const isPreviousEvent = await this.checkForPreviousEvent(
+                daemonEventData.event_id,
+                EventType.VOLATILE_EVENT
+            );
+            if (!isPreviousEvent) return;
+            await this.fileSystemChangeEventProvider.processVolatileEvent(
+                daemonEventData
+            );
+            await this.eventHistoryProvider.recordEvent(
+                daemonEventData.event_id,
+                EventType.VOLATILE_EVENT,
+                new Date(daemonEventData.created_at),
+                { responsibleProcess: daemonEventData.responsible_process }
+            );
+        } else {
+            console.log(
+                'EventHandler.processVolatileEvent - Not VolatileEvent'
+            );
+        }
+    };
+
     private eventProcessors: Record<
         EventType,
         (event: DaemonEvent) => Promise<void>
     > = {
-        [EventType.Unknown]: this.processUnknownEvent.bind(this),
-        [EventType.FullScan]: this.processFullScanEvent.bind(this),
-        [EventType.FilesystemChange]:
+        [EventType.UNKNOWN]: this.processUnknownEvent.bind(this),
+        [EventType.FULL_SCAN]: this.processFullScanEvent.bind(this),
+        [EventType.FILESYSTEM_CHANGE]:
             this.processFilesystemChangeEvent.bind(this),
-        [EventType.NetworkChange]: this.processNetworkChangeEvent.bind(this),
-        [EventType.HardwareChange]: this.processHardwareChangeEvent.bind(this),
-        [EventType.DaemonStatus]: this.processDaemonStatusEvent.bind(this),
-        [EventType.IncrementalScan]: this.processIncrementalScanEvent.bind(this)
+        [EventType.NETWORK_CHANGE]: this.processNetworkChangeEvent.bind(this),
+        [EventType.HARDWARE_CHANGE]: this.processHardwareChangeEvent.bind(this),
+        [EventType.DAEMON_STATUS]: this.processDaemonStatusEvent.bind(this),
+        [EventType.INCREMENTAL_SCAN]:
+            this.processIncrementalScanEvent.bind(this),
+        [EventType.VOLATILE_EVENT]: this.processVolatileEvent.bind(this)
     };
 
     public process = async (event: DaemonEvent) => {
         const processor =
             this.eventProcessors[event.event_type] ||
-            this.eventProcessors[EventType.Unknown];
+            this.eventProcessors[EventType.UNKNOWN];
         await processor(event);
     };
 }
