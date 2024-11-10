@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb';
 export interface FileData {
     path: string;
     status: string;
-    type: string;
+    type: number;
     attrib: Attrib;
     date_created: number;
     du: number;
