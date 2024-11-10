@@ -6,7 +6,8 @@ export interface Directory {
     parentId?: ObjectId;
     path: string;
     status: string;
-    type: string;
+    type: number;
+    isDir: boolean;
     attrib: Attrib;
     date_created: number;
     du: number;

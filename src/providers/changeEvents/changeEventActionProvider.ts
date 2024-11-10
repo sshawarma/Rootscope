@@ -1,7 +1,10 @@
 import { transformTree } from '../../lib/transformTree';
 import DirectoriesRepository from '../../mongo/directoriesRepository';
 import { Directory } from '../../mongo/types/schema';
-import { FileSystemChangeEvent, VolatileEvent } from '../types/fileSystemChangeEvent';
+import {
+    FileSystemChangeEvent,
+    VolatileEvent
+} from '../types/fileSystemChangeEvent';
 
 class ChangeEventActionProvider {
     private static _instance: ChangeEventActionProvider;
@@ -54,7 +57,10 @@ class ChangeEventActionProvider {
     public handleCloseWrite = async (
         event: FileSystemChangeEvent
     ): Promise<void> => {
-        return;
+        await this.directoriesRepository.updateModifiedAt(
+            event.location,
+            event.created_at
+        );
     };
 
     public handleDelete = async (
@@ -77,12 +83,14 @@ class ChangeEventActionProvider {
         );
     };
 
-    public handleVolatileEvent = async(event: VolatileEvent): Promise<void> => {
+    public handleVolatileEvent = async (
+        event: VolatileEvent
+    ): Promise<void> => {
         await this.directoriesRepository.updateModifiedAt(
             event.location,
             event.created_at
         );
-    }
+    };
 }
 
 export default ChangeEventActionProvider;

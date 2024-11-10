@@ -3,7 +3,7 @@ import {
     EventType,
     VolatileEvent
 } from '../types/fileSystemChangeEvent';
-import { DaemonFullScanEvent } from './fullScanEvent';
+import { DaemonFullScanEvent, DaemonFullScanEventData } from './fullScanEvent';
 import { DaemonHardwareEvent } from './hardwareEvent';
 import { IncrementalScanEvent } from './incrementalScanEvent';
 
@@ -28,7 +28,7 @@ export interface DaemonStatusEvent {
 }
 
 export type EventData =
-    | DaemonFullScanEvent
+    | DaemonFullScanEventData
     | DaemonHardwareEvent
     | DaemonFileSystemChangeEvent
     | DaemonStatusEvent

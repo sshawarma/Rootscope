@@ -137,13 +137,13 @@ class FileSystemChangeEventProvider {
             console.log('DeleteSelf Action');
         },
         [Action.Rename]: () => {
-            console.log('access');
+            console.log('Rename Action');
         },
         [Action.SubDirectory]: () => {
-            console.log('access');
+            console.log('SubDirectory Action');
         },
         [Action.Unknown]: () => {
-            console.log('Unknown');
+            console.log('Unknown Action');
         }
     };
 
