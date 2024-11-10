@@ -57,6 +57,11 @@ export interface Attrib {
     group_members: string[];
 }
 
+export interface DaemonFullScanEventData {
+    event_id: number;
+    data: DaemonFullScanEvent;
+}
+
 export interface DaemonFullScanEvent {
     event_id?: number;
     data: FileData;

@@ -11,6 +11,7 @@ import { EventType } from './types/fileSystemChangeEvent';
 import {
     isDaemonFileSystemChangeEvent,
     isDaemonFullScanEvent,
+    isDaemonFullScanEventData,
     isDaemonHardwareEvent,
     isDaemonStatusEvent,
     isIncrementalScanEvent,
@@ -79,7 +80,7 @@ class EventHandler {
     private processFullScanEvent = async (event: DaemonEvent) => {
         console.log(`Processing full scan event`);
         const daemonEventData = event.event_data;
-        if (isDaemonFullScanEvent(daemonEventData)) {
+        if (isDaemonFullScanEventData(daemonEventData)) {
             const isPreviousEvent = await this.checkForPreviousEvent(
                 daemonEventData.event_id,
                 EventType.FULL_SCAN
@@ -87,11 +88,11 @@ class EventHandler {
             if (!isPreviousEvent) {
                 return;
             }
-            await this.fullScanEventProvider.process(daemonEventData);
+            await this.fullScanEventProvider.process(daemonEventData.data);
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,
                 EventType.FULL_SCAN,
-                new Date(daemonEventData.data.date_created),
+                new Date(daemonEventData.data.data.date_created),
                 {}
             );
         } else {
@@ -183,11 +184,7 @@ class EventHandler {
         console.log('Processing incremental scan event');
         const daemonEventData = event.event_data;
         if (isIncrementalScanEvent(daemonEventData)) {
-            const isPreviousEvent = await this.checkForPreviousEvent(
-                daemonEventData.event_id,
-                EventType.INCREMENTAL_SCAN
-            );
-            if (!isPreviousEvent) return;
+            // Don't check for previous event since this event is meant to override state
             await this.incrementalScanEventProvider.process(daemonEventData);
             await this.eventHistoryProvider.recordEvent(
                 daemonEventData.event_id,

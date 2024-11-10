@@ -100,8 +100,13 @@ class DirectoriesRepository {
             const now: Date = new Date();
             const document: Directory = await this.collection.findOneAndUpdate(
                 { path },
-                { $set: { ...data, updatedAt: now } }
+                { $set: { ...data, updatedAt: now } },
+                { returnDocument: 'before' }
             );
+
+            const duDifference: number = data.du - document.du;
+            const cuDifference: number = data.cu_size - document.cu_size;
+            await this.updateDuAndCuSize(path, duDifference, cuDifference);
 
             return !!document;
         } catch (error) {
@@ -223,7 +228,7 @@ class DirectoriesRepository {
                 await this.updateDuAndCuSize(path, duDifference, cuDifference);
         } catch (error) {
             console.log(
-                'DirectoriesRepository.deleteDirectoryAndChildren - Failed to updateMany',
+                'DirectoriesRepository.deleteDirectoryAndChildren - Failed to deleteMany',
                 path,
                 error
             );
@@ -256,7 +261,7 @@ class DirectoriesRepository {
         try {
             directoryAtPath = await this.collection.findOneAndUpdate(
                 { path: pathOneLevelUp },
-                { $push: { children: directoryToCreate.path } }
+                { $push: { directoryChildren: directoryToCreate.path } }
             );
         } catch (error) {
             console.log(
@@ -443,8 +448,7 @@ class DirectoriesRepository {
     };
 
     /*
-     Will update the directory document with the new fields and updated fileChildren and DirectoryChildren arrays.
-     If the document does not exist then it will be upserted.
+     Will upsert the directory document with the new fields and updated fileChildren and DirectoryChildren arrays.
     */
     public updateDirectoryForIncrementalScan = async (
         fileChildren: FileData[],
@@ -504,9 +508,11 @@ class DirectoriesRepository {
                         is_fifo: directory.is_fifo,
                         modifiedAt: directory.date_modified,
                         fileChildren: fileChildrenPaths,
+                        du: directory.du, // TODO, double check this logic of set then inc right after. Does it do setValue + incValue
+                        cu_size: directory.cu_size,
                         updatedAt: now
                     },
-                    $inc: { du: childrenDuSize, cu_size: childrenCuSize },
+                    $inc: { du: childrenDuSize, cu_size: childrenCuSize }, // TODO double check this logic why inc size the existing childs
                     $push: {
                         directoryChildren: { $each: directoryChildrenPaths }
                     }
