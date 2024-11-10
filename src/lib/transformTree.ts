@@ -18,17 +18,18 @@ export const transformTree = (inputData: DaemonFullScanEvent): Directory[] => {
         node.data.parentId = parentId;
 
         const fileChildrenPaths = node.children
-            .filter((event) => event.data.type === FileDataType.FILE)
+            .filter((event) => !isDirectory(event.data.type))
             .map((event) => assignIds(event));
 
         const directoryChildrenPaths = node.children
-            .filter((event) => event.data.type === FileDataType.DIRECTORY)
+            .filter((event) => isDirectory(event.data.type))
             .map((event) => assignIds(event, nodeId));
         const now: Date = new Date();
         directories.push({
             ...node.data,
             _id: nodeId,
             du: node.data.du,
+            isDir: isDirectory(node.data.type),
             fileChildren: fileChildrenPaths,
             directoryChildren: directoryChildrenPaths,
             createdAt: now,
@@ -43,6 +44,14 @@ export const transformTree = (inputData: DaemonFullScanEvent): Directory[] => {
     return directories;
 };
 
+export const isDirectory = (bitmask: number): boolean => {
+    return (
+        !!(bitmask & (1 << 1)) ||
+        !!(bitmask & (1 << 2)) ||
+        !!(bitmask & (1 << 8))
+    );
+};
+
 export const mapFileDataToDirectories = (
     fileData: FileData[],
     parentId: ObjectId
@@ -52,6 +61,7 @@ export const mapFileDataToDirectories = (
         ...file,
         parentId: parentId,
         du: file.du,
+        isDir: isDirectory(file.type),
         createdAt: now,
         updatedAt: now,
         fileChildren: [],

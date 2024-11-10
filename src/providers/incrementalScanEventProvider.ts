@@ -1,4 +1,8 @@
-import { mapFileDataToDirectories, transformTree } from '../lib/transformTree';
+import {
+    isDirectory,
+    mapFileDataToDirectories,
+    transformTree
+} from '../lib/transformTree';
 import DirectoriesRepository, {
     UpdateDirectoryForIncrementalScanResult
 } from '../mongo/directoriesRepository';
@@ -36,7 +40,7 @@ class IncrementalScanEventProvider {
     private processDeleted = async (event: DaemonFullScanEvent) => {
         const directoriesToDelete: string[] = [event.data.path];
         event.children.forEach((child) => {
-            if (child.data.type == FileDataType.FILE) {
+            if (!isDirectory(child.data.type)) {
                 directoriesToDelete.push(child.data.path);
             }
         });
@@ -66,9 +70,9 @@ class IncrementalScanEventProvider {
         const fileChildren: FileData[] = [];
         const directoryChildren: DaemonFullScanEvent[] = [];
         event.children.forEach((child) => {
-            if (child.data.type == FileDataType.FILE) {
+            if (!isDirectory(child.data.type)) {
                 fileChildren.push(child.data);
-            } else if (child.data.type == FileDataType.DIRECTORY) {
+            } else if (isDirectory(child.data.type)) {
                 directoryChildren.push(child);
             }
         });
