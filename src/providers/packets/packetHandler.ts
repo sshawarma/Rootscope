@@ -1,5 +1,6 @@
 import MsgPack from '../../lib/msgpack';
 import EventPacketRepository from '../../mongo/eventPacketRepository';
+import { MongoEventPacket } from '../../mongo/types/schema';
 import EventHandler from '../eventHandler';
 import { DaemonEvent, EventData, EventPacket } from '../types/daemonEvent';
 
@@ -26,11 +27,15 @@ class EventPacketHandler {
 
     public process = async (eventPacket: EventPacket) => {
         await this.eventPacketRepository.insertEventPacket(eventPacket);
-        const packets: EventPacket[] =
-            await this.eventPacketRepository.queryEventPackets(
+        const packetsReceivedForMessageId: number =
+            await this.eventPacketRepository.countEventPackets(
                 eventPacket.message_id
             );
-        if (packets.length == eventPacket.total_packets) {
+        if (packetsReceivedForMessageId == eventPacket.total_packets) {
+            const packets: MongoEventPacket[] =
+                await this.eventPacketRepository.queryEventPackets(
+                    eventPacket.message_id
+                );
             const unpackedEventData: EventData =
                 MsgPack.orderAndUnpackEventPackets(packets);
             const daemonEvent: DaemonEvent = {

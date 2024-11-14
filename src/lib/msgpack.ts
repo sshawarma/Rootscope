@@ -1,6 +1,7 @@
 import { pack, unpack } from 'msgpackr';
 
 import { EventData, EventPacket } from '../providers/types/daemonEvent';
+import { MongoEventPacket } from '../mongo/types/schema';
 
 class MsgPack {
     private static _instance: MsgPack;
@@ -29,14 +30,15 @@ class MsgPack {
     };
 
     public static orderAndUnpackEventPackets = (
-        eventPackets: EventPacket[]
+        eventPackets: MongoEventPacket[]
     ): EventData => {
-        const packedData: string = eventPackets
+        const packedData: Buffer[] = eventPackets
             .sort((a, b) => (a.sequence_number > b.sequence_number ? 1 : -1))
-            .map((packet) => packet.packed_data)
-            .join('');
-        const bufferData: Buffer = Buffer.from(packedData, 'base64');
-        return this.unpackMessage(bufferData);
+            .map((packet) => packet.packed_data);
+
+        const decodedData: Buffer = Buffer.concat(packedData);
+
+        return this.unpackMessage(decodedData);
     };
 }
 

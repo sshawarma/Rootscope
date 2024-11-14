@@ -32,14 +32,31 @@ class EventPacketRepository {
 
     public insertEventPacket = async (eventPacket: EventPacket) => {
         try {
+            const decodedPackedData: Buffer = Buffer.from(
+                eventPacket.packed_data,
+                'base64'
+            );
             await this.collection.insertOne({
                 ...eventPacket,
+                packed_data: decodedPackedData,
                 createdAt: new Date()
             });
         } catch (error) {
             console.log(
                 'EventPacketRepository.insertEventPacket - Failed to insertOne',
                 eventPacket,
+                error
+            );
+        }
+    };
+
+    public countEventPackets = async (message_id: string): Promise<number> => {
+        try {
+            return this.collection.countDocuments({ message_id });
+        } catch (error) {
+            console.log(
+                'EventPacketRepository.queryEventPackets - Failed to find',
+                message_id,
                 error
             );
         }

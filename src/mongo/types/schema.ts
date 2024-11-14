@@ -25,6 +25,11 @@ export interface Directory {
     directoryChildren: string[];
 }
 
-export interface MongoEventPacket extends EventPacket {
+export interface MongoEventPacket {
+    message_id: string;
+    total_packets: number;
+    event_type: number;
+    sequence_number: number;
+    packed_data: Buffer;
     createdAt: Date;
 }
