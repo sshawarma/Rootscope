@@ -64,7 +64,7 @@ class EventHandler {
             const messageToPublish: ErrorMessage = {
                 errorType: ErrorType.OUT_OF_ORDER,
                 eventType: eventType,
-                timeOfError: new Date(),
+                lastSuccesfulEventTime: parseInt((new Date().getTime() / 1000).toFixed(0)),
                 data: { eventId }
             };
             MQTTClientProvider.publishToTopic(JSON.stringify(messageToPublish));
